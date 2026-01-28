@@ -132,7 +132,7 @@ public class GameData : MonoBehaviour
         Debug.Log($"Muerte #{totalDeaths} registrada");
     }
 
-    public void RegisterHideAttemp(float duration)
+    public void RegisterHideAttempt(float duration)
     {
         totalHideAttempts++;
         if (duration > longestHideTime)

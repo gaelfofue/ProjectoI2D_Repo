@@ -4,6 +4,7 @@
 TagManager:
   serializedVersion: 3
   tags:
+  - Enemy
   - SafeZone
   layers:
   - Default
@@ -12,11 +13,11 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
+  - Ground
   - Player
   - Enemy
-  - Ground
+  - Hidden
+  - SafeZone
   - 
   - 
   - 
