@@ -144,7 +144,7 @@ public class GameOverUI : MonoBehaviour
             panelCanvasGroup.alpha = 1f;
         }
 
-        Debug.Log("🖥️ Mostrando Game Over UI");
+        Debug.Log(" Mostrando Game Over UI");
     }
 
     public void HideGameOver()
@@ -181,13 +181,14 @@ public class GameOverUI : MonoBehaviour
     #region BUTTON HANDLERS
     private void OnRestartClicked()
     {
-        Debug.Log("🔄 Botón Reintentar presionado");
+        Debug.Log("Botón Reintentar presionado");
 
         if (restartButton != null)
             restartButton.interactable = false;
 
         if (GameManager.Instance != null)
         {
+            StartCoroutine(FadeInPanel());
             GameManager.Instance.RestartLevel();
         }
         else
@@ -201,7 +202,7 @@ public class GameOverUI : MonoBehaviour
 
     private void OnMainMenuClicked()
     {
-        Debug.Log("🏠 Botón Menú Principal presionado");
+        Debug.Log(" Botón Menú Principal presionado");
 
         if (mainMenuButton != null)
             mainMenuButton.interactable = false;
@@ -219,7 +220,7 @@ public class GameOverUI : MonoBehaviour
 
     private void OnQuitClicked()
     {
-        Debug.Log("🚪 Botón Salir presionado");
+        Debug.Log(" Botón Salir presionado");
 
         if (GameData.instance != null)
         {

@@ -26,8 +26,8 @@ public class GameManager : MonoBehaviour
     public UnityEvent OnResume = new UnityEvent();
 
     [Header("Input")]
-    [SerializeField] private bool allowPauseInput = true;
-    [SerializeField] private bool allowRestartInput = true;
+    public bool allowPauseInput = true;
+    public bool allowRestartInput = true;
 
     // Propiedades públicas
     public bool IsGameOver => isGameOver;
