@@ -27,14 +27,21 @@ public class SimpleEnemy : MonoBehaviour
 
     void Update()
     {
-        if (player == null || playerController == null || !playerController.IsAlive) return;
+        // Verificar si el jugador existe y está vivo
+        if (player == null || playerController == null || playerController.IsDead)
+        {
+            // Si el jugador murió, detenerse
+            if (rb != null)
+                rb.linearVelocity = Vector2.zero;
+            return;
+        }
 
         float distance = Vector2.Distance(transform.position, player.position);
 
         // ¿Puede VER y ATACAR al jugador?
         if (playerController.CanBeSeenByEnemy() && playerController.CanBeAttackedByEnemy())
         {
-            // CORREGIDO: Perseguir en la dirección CORRECTA
+            // Perseguir en la dirección CORRECTA
             Vector2 directionToPlayer = (player.position - transform.position);
 
             // Solo perseguir si está dentro del rango de visión
@@ -54,7 +61,7 @@ public class SimpleEnemy : MonoBehaviour
             }
             else
             {
-                // Si está fuera de rango, parar
+                // Si está fuera de rango, parar o patrullar
                 rb.linearVelocity = Vector2.zero;
             }
         }
@@ -74,13 +81,15 @@ public class SimpleEnemy : MonoBehaviour
         }
         else
         {
-            // Comportamiento de patrulla (puedes implementarlo)
+            // Comportamiento de patrulla
             Patrol();
         }
     }
 
     void SearchForPlayer()
     {
+        if (playerController == null || playerController.IsDead) return;
+
         Debug.Log("👀 Enemigo revisando el escondite...");
 
         // El jugador puede ser descubierto incluso sin collider
@@ -89,21 +98,25 @@ public class SimpleEnemy : MonoBehaviour
         if (found)
         {
             Debug.Log("¡Enemigo encontró al jugador!");
-            // El Game Over ya se maneja en el PlayerController
+            // El Game Over ya se maneja en el PlayerController (GetDiscovered())
         }
     }
 
     void AttackPlayer()
     {
+        if (playerController == null || playerController.IsDead) return;
+
         Debug.Log("⚔️ Enemigo atacando!");
-        playerController.GameOver("Un enemigo te atacó");
+
+        // CAMBIO AQUÍ: Usar TakeDamage() en lugar de GameOver()
+        playerController.TakeDamage();
     }
 
     void Patrol()
     {
         // Implementa tu lógica de patrulla aquí
         // Por ahora, solo se queda quieto
-        if (rb.linearVelocity.magnitude > 0.1f)
+        if (rb != null && rb.linearVelocity.magnitude > 0.1f)
         {
             rb.linearVelocity = Vector2.Lerp(rb.linearVelocity, Vector2.zero, Time.deltaTime * 2f);
         }
@@ -116,6 +129,15 @@ public class SimpleEnemy : MonoBehaviour
         {
             // No hacer nada - la física no empujará si el collider está desactivado
             // El ataque se maneja por distancia, no por colisión
+        }
+    }
+
+    // También verificar OnCollisionStay2D por si acaso
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            // No hacer nada aquí tampoco
         }
     }
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement; // Para el Game Over
 
 public class PlayerController : MonoBehaviour
 {
@@ -31,7 +30,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] bool isInSafeZone = false;
     [SerializeField] bool isHidden = false;
     [SerializeField] float hideAlpha = 0.3f;
-    [SerializeField] float timeToDisableCollider = 0.5f; // Tiempo para desactivar collider
+    [SerializeField] float timeToDisableCollider = 0.5f;
     [SerializeField] Color hiddenColor = new Color(0.2f, 0.2f, 0.2f, 0.3f);
     [SerializeField] Color normalColor = Color.white;
 
@@ -39,22 +38,23 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Transform groundCheck;
     [SerializeField] float groundCheckRadius = 0.2f;
 
-    [Header("Game Over")]
-    [SerializeField] GameObject gameOverScreen;
-    [SerializeField] string gameOverScene = "GameOver";
+    [Header("Death Settings")]
+    [SerializeField] private string deathReason = "¡Te atraparon!";
+    [SerializeField] private Color deathColor = Color.red;
 
     private float horizontal;
     private bool isRunning;
     private bool isExhausted;
     private float exhaustedTimer = 0f;
     private float hideTimer = 0f;
-    private bool isGameOver = false;
+    private bool isDead = false;
+    private RigidbodyType2D originalBodyType;
 
     // Propiedades públicas
     public bool IsInSafeZone => isInSafeZone;
     public bool IsHidden => isHidden;
     public Vector2 Position => transform.position;
-    public bool IsAlive => !isGameOver;
+    public bool IsDead => isDead;
 
     private void Start()
     {
@@ -62,19 +62,21 @@ public class PlayerController : MonoBehaviour
         rend = GetComponent<SpriteRenderer>();
         playerCollider = GetComponent<Collider2D>();
 
-        if (gameOverScreen != null)
-            gameOverScreen.SetActive(false);
+        // Guardar el tipo de cuerpo original
+        originalBodyType = rb.bodyType;
     }
 
     private void Update()
     {
-        if (isGameOver) return;
+        if (isDead) return;
 
         HandleStamina();
         UpdateUI();
         UpdateExhaustedTimer();
         UpdateAppearance();
         UpdateHideTimer();
+
+        CheckExhaustionDeath();
     }
 
     private void UpdateExhaustedTimer()
@@ -95,7 +97,6 @@ public class PlayerController : MonoBehaviour
         {
             hideTimer += Time.deltaTime;
 
-            // Desactivar collider después de un tiempo
             if (hideTimer >= timeToDisableCollider && playerCollider.enabled)
             {
                 playerCollider.enabled = false;
@@ -106,7 +107,6 @@ public class PlayerController : MonoBehaviour
         {
             hideTimer = 0f;
 
-            // Reactivar collider si estaba desactivado
             if (!playerCollider.enabled)
             {
                 playerCollider.enabled = true;
@@ -117,20 +117,19 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateAppearance()
     {
+        if (isDead) return;
+
         if (isInSafeZone && isHidden)
         {
-            // Totalmente escondido
             rend.color = hiddenColor;
         }
         else if (isInSafeZone)
         {
-            // En zona segura pero visible
             Color semiHidden = Color.Lerp(normalColor, hiddenColor, 0.5f);
             rend.color = Color.Lerp(rend.color, semiHidden, Time.deltaTime * 3f);
         }
         else
         {
-            // Fuera de zona segura
             rend.color = Color.Lerp(rend.color, normalColor, Time.deltaTime * 3f);
             isHidden = false;
         }
@@ -138,7 +137,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (isGameOver) return;
+        if (isDead) return;
 
         float currentSpeed = speed;
 
@@ -151,6 +150,7 @@ public class PlayerController : MonoBehaviour
             currentSpeed = runSpeed;
         }
 
+        // USAR linearVelocity (no velocity que está obsoleto en tu versión)
         rb.linearVelocity = new Vector2(horizontal * currentSpeed, rb.linearVelocity.y);
     }
 
@@ -188,6 +188,14 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void CheckExhaustionDeath()
+    {
+        if (isExhausted && exhaustedTimer <= -3f)
+        {
+            Die("Te quedaste sin energía");
+        }
+    }
+
     private void UpdateUI()
     {
         if (StaminaBar != null)
@@ -200,13 +208,13 @@ public class PlayerController : MonoBehaviour
 
     public void Move(InputAction.CallbackContext context)
     {
-        if (isGameOver) return;
+        if (isDead) return;
         horizontal = context.ReadValue<Vector2>().x;
     }
 
     public void Run(InputAction.CallbackContext context)
     {
-        if (isGameOver) return;
+        if (isDead) return;
 
         if (context.started && !isExhausted && Stamina > 0)
         {
@@ -220,18 +228,18 @@ public class PlayerController : MonoBehaviour
 
     public void Jump(InputAction.CallbackContext context)
     {
-        if (isGameOver) return;
+        if (isDead) return;
 
         if (context.performed && IsGrounded())
         {
+            // USAR linearVelocity (no velocity)
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpingPower);
         }
     }
 
-    // Tecla para esconderse manualmente (opcional)
     public void ToggleHide(InputAction.CallbackContext context)
     {
-        if (isGameOver) return;
+        if (isDead) return;
 
         if (context.performed && isInSafeZone)
         {
@@ -259,14 +267,12 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (isGameOver) return;
+        if (isDead) return;
 
         if (other.CompareTag("SafeZone"))
         {
             isInSafeZone = true;
             Debug.Log("🛡️ Entrando en zona segura");
-
-            // Auto-esconderse
             Invoke("AutoHide", 0.3f);
         }
     }
@@ -278,14 +284,13 @@ public class PlayerController : MonoBehaviour
             isInSafeZone = false;
             isHidden = false;
             Debug.Log("🚶 Saliendo de zona segura");
-
             CancelInvoke("AutoHide");
         }
     }
 
     private void AutoHide()
     {
-        if (isInSafeZone && !isHidden && !isGameOver)
+        if (isInSafeZone && !isHidden && !isDead)
         {
             isHidden = true;
             Debug.Log("🌑 Te has fusionado con las sombras...");
@@ -296,40 +301,34 @@ public class PlayerController : MonoBehaviour
 
     public bool CanBeSeenByEnemy()
     {
-        // No puede ser visto si está escondido (con o sin collider)
+        if (isDead) return false;
         return !(isInSafeZone && isHidden);
     }
 
     public bool CanBeAttackedByEnemy()
     {
-        // Solo puede ser atacado si NO está escondido
+        if (isDead) return false;
         return !(isInSafeZone && isHidden);
     }
 
-    // Enemigo revisa el escondite - PUEDE dar Game Over incluso sin collider
     public bool CheckIfFound(Vector3 enemyPosition, float searchRange, float searchIntensity = 1f)
     {
-        // Si ya está muerto, no hacer nada
-        if (isGameOver) return false;
+        if (isDead) return false;
 
-        // Solo aplica si está escondido
         if (!isInSafeZone || !isHidden) return false;
 
         float distance = Vector2.Distance(transform.position, enemyPosition);
 
-        // Si el enemigo está revisando cerca
         if (distance <= searchRange)
         {
-            // Calcular probabilidad de ser descubierto
-            // Más cerca + más intensidad = mayor chance
             float baseChance = 0.1f;
-            float distanceFactor = 1f - (distance / searchRange); // 0 a 1
+            float distanceFactor = 1f - (distance / searchRange);
             float discoveryChance = (baseChance + (distanceFactor * 0.6f)) * searchIntensity;
 
             if (Random.value < discoveryChance)
             {
                 Debug.Log("🚨 ¡TE HAN DESCUBIERTO!");
-                GameOver("Te descubrieron en tu escondite");
+                GetDiscovered();
                 return true;
             }
             else
@@ -341,53 +340,79 @@ public class PlayerController : MonoBehaviour
         return false;
     }
 
-    // ==================== GAME OVER SYSTEM ====================
+    // ==================== SISTEMA DE MUERTE ====================
 
-    public void GameOver(string reason = "Game Over")
+    public void TakeDamage()
     {
-        if (isGameOver) return;
+        Die("Un enemigo te atacó");
+    }
 
-        isGameOver = true;
-        Debug.Log($"💀 GAME OVER: {reason}");
+    public void GetDiscovered()
+    {
+        Die("Te descubrieron en tu escondite");
+    }
 
-        // Detener movimiento
-        rb.linearVelocity = Vector2.zero;
-        rb.isKinematic = true;
+    public void Die(string customReason = "")
+    {
+        if (isDead) return;
 
-        // Mostrar pantalla de Game Over
-        if (gameOverScreen != null)
-        {
-            gameOverScreen.SetActive(true);
-        }
-        else
-        {
-            // O cargar escena de Game Over
-            Invoke("LoadGameOverScene", 2f);
-        }
+        isDead = true;
 
-        // Efecto visual de muerte
-        rend.color = Color.red;
+        // Congelar al jugador
+        rb.linearVelocity = Vector2.zero; // USAR linearVelocity
+        rb.bodyType = RigidbodyType2D.Static;
+
+        // Efecto visual
+        rend.color = deathColor;
 
         // Desactivar controles
         horizontal = 0;
         isRunning = false;
-    }
 
-    private void LoadGameOverScene()
-    {
-        if (!string.IsNullOrEmpty(gameOverScene))
+        // Forzar visible y reactivar collider
+        isHidden = false;
+        if (!playerCollider.enabled)
         {
-            SceneManager.LoadScene(gameOverScene);
+            playerCollider.enabled = true;
         }
+
+        string finalReason = string.IsNullOrEmpty(customReason) ? deathReason : customReason;
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.GameOver(finalReason);
+        }
+        else
+        {
+            Debug.Log($"💀 {finalReason}");
+            StartCoroutine(FallbackGameOver());
+        }
+
+        Debug.Log($"💀 Jugador muerto: {finalReason}");
     }
 
-    // Para reiniciar (desde botón UI)
-    public void RestartGame()
+    public void Revive()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        isDead = false;
+
+        rb.bodyType = originalBodyType;
+        rend.color = normalColor;
+        playerCollider.enabled = true;
+        rb.linearVelocity = Vector2.zero; // USAR linearVelocity
+        horizontal = 0;
+        isRunning = false;
+
+        Debug.Log("✨ Jugador revivido");
     }
 
-    // Para debug visual
+    private IEnumerator FallbackGameOver()
+    {
+        yield return new WaitForSeconds(2f);
+
+        UnityEngine.SceneManagement.SceneManager.LoadScene(
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+    }
+
     private void OnDrawGizmos()
     {
         if (groundCheck != null)
