@@ -2,9 +2,6 @@
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// Maneja la UI de Game Over. Se conecta al GameManager de la escena.
-/// </summary>
 public class GameOverUI : MonoBehaviour
 {
     [Header("Panel References")]
@@ -33,7 +30,6 @@ public class GameOverUI : MonoBehaviour
 
     private void Awake()
     {
-        // Ocultar panel al inicio
         if (gameOverPanel != null)
         {
             gameOverPanel.SetActive(false);
@@ -86,11 +82,10 @@ public class GameOverUI : MonoBehaviour
             GameManager.Instance.OnGameOver.AddListener(ShowGameOver);
             GameManager.Instance.OnGameRestart.AddListener(HideGameOver);
             isSubscribed = true;
-            Debug.Log("GameOverUI conectado al GameManager");
+            Debug.Log("✅ GameOverUI conectado al GameManager");
         }
         else
         {
-            // Reintentar en el siguiente frame
             Invoke(nameof(SubscribeToEvents), 0.1f);
         }
     }
@@ -113,6 +108,7 @@ public class GameOverUI : MonoBehaviour
     {
         if (gameOverPanel == null) return;
 
+        // ⭐ CRÍTICO: Activar el panel PRIMERO
         gameOverPanel.SetActive(true);
 
         // Configurar textos
@@ -138,8 +134,8 @@ public class GameOverUI : MonoBehaviour
         if (mainMenuButton != null) mainMenuButton.interactable = true;
         if (quitButton != null) quitButton.interactable = true;
 
-        // Animación
-        if (animateOnShow)
+        // AHORA SÍ podemos hacer la animación (el GameObject ya está activo)
+        if (animateOnShow && panelCanvasGroup != null)
         {
             StartCoroutine(FadeInPanel());
         }
@@ -148,7 +144,7 @@ public class GameOverUI : MonoBehaviour
             panelCanvasGroup.alpha = 1f;
         }
 
-        Debug.Log("Mostrando Game Over UI");
+        Debug.Log("🖥️ Mostrando Game Over UI");
     }
 
     public void HideGameOver()
@@ -185,9 +181,8 @@ public class GameOverUI : MonoBehaviour
     #region BUTTON HANDLERS
     private void OnRestartClicked()
     {
-        Debug.Log("Botón Reintentar presionado");
+        Debug.Log("🔄 Botón Reintentar presionado");
 
-        // Desactivar botón para evitar múltiples clics
         if (restartButton != null)
             restartButton.interactable = false;
 
@@ -197,7 +192,6 @@ public class GameOverUI : MonoBehaviour
         }
         else
         {
-            // Fallback
             Time.timeScale = 1f;
             UnityEngine.SceneManagement.SceneManager.LoadScene(
                 UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex
@@ -207,7 +201,7 @@ public class GameOverUI : MonoBehaviour
 
     private void OnMainMenuClicked()
     {
-        Debug.Log("Botón Menú Principal presionado");
+        Debug.Log("🏠 Botón Menú Principal presionado");
 
         if (mainMenuButton != null)
             mainMenuButton.interactable = false;
@@ -215,10 +209,6 @@ public class GameOverUI : MonoBehaviour
         if (GameManager.Instance != null)
         {
             GameManager.Instance.ReturnToMainMenu();
-        }
-        else if (SceneLoader.Instance != null)
-        {
-            SceneLoader.Instance.LoadMainMenu();
         }
         else
         {
@@ -229,9 +219,8 @@ public class GameOverUI : MonoBehaviour
 
     private void OnQuitClicked()
     {
-        Debug.Log("Botón Salir presionado");
+        Debug.Log("🚪 Botón Salir presionado");
 
-        // Guardar datos antes de salir
         if (GameData.instance != null)
         {
             GameData.instance.SaveData();
@@ -252,12 +241,5 @@ public class GameOverUI : MonoBehaviour
         int secs = Mathf.FloorToInt(seconds % 60f);
         return $"{minutes:00}:{secs:00}";
     }
-    #endregion
-
-    // Para testing desde el Inspector
-    [ContextMenu("Test Show Game Over")]
-    private void TestShowGameOver()
-    {
-        ShowGameOver("Test de Game Over");
-    }
 }
+    #endregion

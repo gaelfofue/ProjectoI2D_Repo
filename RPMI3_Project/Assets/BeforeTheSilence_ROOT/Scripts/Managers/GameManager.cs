@@ -2,7 +2,9 @@
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
-/// Maneja el estado del nivel actual. Se destruye y recrea en cada escena.
+/// <summary>
+/// VERSIÓN CORREGIDA - Eventos configurados correctamente
+/// </summary>
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
@@ -17,11 +19,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private string levelName = "Test Level";
 
     [Header("Events")]
-    public UnityEvent OnLevelStart;
-    public UnityEvent<string> OnGameOver;
-    public UnityEvent OnGameRestart;
-    public UnityEvent OnPause;
-    public UnityEvent OnResume;
+    public UnityEvent OnLevelStart = new UnityEvent();
+    public UnityEvent<string> OnGameOver = new UnityEvent<string>();  // ← IMPORTANTE
+    public UnityEvent OnGameRestart = new UnityEvent();
+    public UnityEvent OnPause = new UnityEvent();
+    public UnityEvent OnResume = new UnityEvent();
 
     [Header("Input")]
     [SerializeField] private bool allowPauseInput = true;
@@ -36,20 +38,32 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
+        Debug.Log("🎮 [GameManager] Awake");
+
         // Singleton POR ESCENA (sin DontDestroyOnLoad)
         if (Instance == null)
         {
             Instance = this;
+            Debug.Log("✅ GameManager Instance creado");
         }
         else
         {
+            Debug.LogWarning("⚠️ Ya existe un GameManager, destruyendo este");
             Destroy(gameObject);
             return;
         }
+
+        // IMPORTANTE: Inicializar eventos si son null
+        if (OnLevelStart == null) OnLevelStart = new UnityEvent();
+        if (OnGameOver == null) OnGameOver = new UnityEvent<string>();
+        if (OnGameRestart == null) OnGameRestart = new UnityEvent();
+        if (OnPause == null) OnPause = new UnityEvent();
+        if (OnResume == null) OnResume = new UnityEvent();
     }
 
     private void Start()
     {
+        Debug.Log("🎮 [GameManager] Start");
         StartLevel();
     }
 
@@ -57,6 +71,7 @@ public class GameManager : MonoBehaviour
     {
         if (Instance == this)
         {
+            Debug.Log("🎮 [GameManager] Destruyendo Instance");
             Instance = null;
         }
     }
@@ -109,13 +124,20 @@ public class GameManager : MonoBehaviour
             AudioManager.Instance.SetBreathingState(BreathingState.Normal);
         }
 
-        OnLevelStart?.Invoke();
         Debug.Log($"Nivel '{levelName}' iniciado");
+        OnLevelStart?.Invoke();
     }
 
     public void GameOver(string reason = "")
     {
-        if (isGameOver) return;
+        if (isGameOver)
+        {
+            Debug.LogWarning("GameOver ya estaba activo, ignorando llamada duplicada");
+            return;
+        }
+
+        Debug.Log("GAMEMANAGER.GAMEOVER LLAMADO 🔥🔥🔥");
+        Debug.Log($"Razón: '{reason}'");
 
         isGameOver = true;
         gameOverReason = string.IsNullOrEmpty(reason) ? "¡Te atraparon!" : reason;
@@ -129,6 +151,7 @@ public class GameManager : MonoBehaviour
         if (GameData.instance != null)
         {
             GameData.instance.RegisterDeath();
+            Debug.Log("Muerte registrada en GameData");
         }
 
         // Audio
@@ -137,10 +160,25 @@ public class GameManager : MonoBehaviour
             AudioManager.Instance.PlayGameOverMusic();
             AudioManager.Instance.PlayDeathSound();
             AudioManager.Instance.StopBreathing();
+            Debug.Log("Audio de Game Over reproducido");
         }
 
         Debug.Log($"GAME OVER: {gameOverReason}");
-        OnGameOver?.Invoke(gameOverReason);
+
+        // VERIFICAR EVENTO ANTES DE INVOCAR
+        if (OnGameOver != null)
+        {
+            int listenerCount = OnGameOver.GetPersistentEventCount();
+            Debug.Log($"OnGameOver tiene {listenerCount} listeners");
+
+            Debug.Log("Invocando OnGameOver...");
+            OnGameOver.Invoke(gameOverReason);
+            Debug.Log("OnGameOver invocado");
+        }
+        else
+        {
+            Debug.LogError("❌❌❌ OnGameOver ES NULL! ❌❌❌");
+        }
     }
 
     public void RestartLevel()
@@ -154,17 +192,10 @@ public class GameManager : MonoBehaviour
 
         OnGameRestart?.Invoke();
 
-        // Usar SceneLoader si existe, sino método directo
-        if (SceneLoader.Instance != null)
-        {
-            SceneLoader.Instance.ReloadCurrentScene();
-        }
-        else
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(
-                UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex
-            );
-        }
+        // Recargar escena actual
+        UnityEngine.SceneManagement.SceneManager.LoadScene(
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex
+        );
     }
 
     public void LoadNextLevel()
@@ -176,27 +207,15 @@ public class GameManager : MonoBehaviour
 
         Time.timeScale = 1f;
 
-        if (SceneLoader.Instance != null)
-        {
-            SceneLoader.Instance.LoadScene(
-                UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex + 1,
-                true
-            );
-        }
+        UnityEngine.SceneManagement.SceneManager.LoadScene(
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex + 1
+        );
     }
 
     public void ReturnToMainMenu()
     {
         Time.timeScale = 1f;
-
-        if (SceneLoader.Instance != null)
-        {
-            SceneLoader.Instance.LoadMainMenu();
-        }
-        else
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
-        }
+        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
     }
     #endregion
 
@@ -224,7 +243,7 @@ public class GameManager : MonoBehaviour
         Cursor.visible = true;
 
         OnPause?.Invoke();
-        Debug.Log("Juego pausado");
+        Debug.Log("⏸️ Juego pausado");
     }
 
     public void ResumeGame()
@@ -233,7 +252,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
 
         OnResume?.Invoke();
-        Debug.Log("Juego reanudado");
+        Debug.Log("▶️ Juego reanudado");
     }
     #endregion
 
@@ -248,8 +267,14 @@ public class GameManager : MonoBehaviour
         {
             GameData.instance.CompleteLevel(levelIndex);
         }
-
-        // Aquí podrías mostrar una pantalla de victoria o cargar el siguiente nivel
     }
     #endregion
+
+    // TESTING
+    [ContextMenu("Test Game Over")]
+    private void TestGameOver()
+    {
+        Debug.Log("TEST: Forzando Game Over desde GameManager");
+        GameOver("Test manual desde GameManager");
+    }
 }
