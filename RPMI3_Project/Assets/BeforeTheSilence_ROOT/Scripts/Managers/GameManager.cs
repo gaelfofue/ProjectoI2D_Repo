@@ -44,7 +44,9 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            Debug.Log("✅ GameManager Instance creado");
+            Debug.Log(" GameManager Instance creado");
+            if (!allowPauseInput) allowPauseInput = true;
+            if (!allowRestartInput) allowRestartInput = true;
         }
         else
         {
