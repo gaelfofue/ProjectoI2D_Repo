@@ -1,21 +1,25 @@
-// SafeZone.cs - Colócalo en tus zonas de escondite
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class SafeZone : MonoBehaviour
 {
     [Header("Zone Settings")]
     [SerializeField] bool isDarknessZone = true;
-    [SerializeField] Color zoneColor = new Color(0, 0, 0.5f, 0.3f);
-    [SerializeField] float discoveryRisk = 0.2f; // 20% de riesgo si revisan
+    [SerializeField] bool autoHide = true;
+    [SerializeField] float autoHideDelay = 0.5f;
+    [SerializeField] float discoveryRisk = 0.2f;
 
-    [Header("Visual Effects")]
+    [Header("Visual")]
+    [SerializeField] Color zoneColor = new Color(0, 0, 0.5f, 0.3f);
     [SerializeField] ParticleSystem hideParticles;
 
     private SpriteRenderer zoneRenderer;
+    private Collider2D zoneCollider;
 
     private void Start()
     {
         zoneRenderer = GetComponent<SpriteRenderer>();
+        zoneCollider = GetComponent<Collider2D>();
+
         if (zoneRenderer != null)
         {
             zoneRenderer.color = zoneColor;
@@ -26,31 +30,41 @@ public class SafeZone : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            // Efecto visual opcional
-            if (hideParticles != null)
+            PlayerController player = other.GetComponent<PlayerController>();
+            if (player != null)
             {
-                Instantiate(hideParticles, other.transform.position, Quaternion.identity);
-            }
+                // Efecto visual opcional
+                if (hideParticles != null)
+                {
+                    Instantiate(hideParticles, other.transform.position, Quaternion.identity);
+                }
 
-            if (isDarknessZone)
-            {
-                Debug.Log("Las sombras te envuelven...");
+                if (isDarknessZone)
+                {
+                    Debug.Log("ðŸŒ‘ Las sombras te envuelven...");
+                }
             }
         }
     }
 
-    // Método para que enemigos revisen ESTA zona específica
+    // MÃ©todo para que enemigos revisen ESTA zona
     public float CheckZone(Vector3 enemyPosition)
     {
-        float distance = Vector3.Distance(transform.position, enemyPosition);
-        float zoneSize = Mathf.Max(transform.localScale.x, transform.localScale.y);
+        if (zoneCollider == null) return 0f;
 
-        // Si el enemigo está dentro o muy cerca de la zona
-        if (distance <= zoneSize * 1.5f)
+        // Calcular distancia al centro de la zona
+        float distance = Vector3.Distance(transform.position, enemyPosition);
+
+        // Si el enemigo estÃ¡ cerca de la zona
+        if (distance <= zoneCollider.bounds.size.magnitude * 1.5f)
         {
-            return discoveryRisk; // Retorna el riesgo de esta zona
+            // Ajustar riesgo segÃºn distancia
+            float normalizedDistance = Mathf.Clamp01(distance / (zoneCollider.bounds.size.magnitude * 2f));
+            float adjustedRisk = discoveryRisk * (1f - normalizedDistance);
+
+            return adjustedRisk;
         }
 
-        return 0f; // Sin riesgo
+        return 0f;
     }
 }

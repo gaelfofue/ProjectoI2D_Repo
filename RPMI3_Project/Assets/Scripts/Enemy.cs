@@ -6,83 +6,167 @@ public class SimpleEnemy : MonoBehaviour
     [SerializeField] float moveSpeed = 3f;
     [SerializeField] float visionRange = 5f;
     [SerializeField] float attackRange = 1f;
-    [SerializeField] float searchRange = 2f;
+    [SerializeField] float searchRange = 3f;
+
+    [Header("Patrol Settings")]
+    [SerializeField] bool enablePatrol = true;
+    [SerializeField] float patrolDistance = 5f;
+    [SerializeField] float waitTimeAtPoint = 1f;
+    [SerializeField] Transform[] patrolPoints;
 
     [Header("Search Behavior")]
-    [SerializeField] float searchIntensity = 1f; // 1 = normal, 2 = más peligroso
-    [SerializeField] float searchCooldown = 2f;
+    [SerializeField] float searchIntensity = 1f;
+    [SerializeField] float searchCooldown = 3f;
+    [SerializeField] bool canSearchWhenHidden = true;
+
+    [Header("Debug")]
+    [SerializeField] private bool debugMode = false;
 
     private Transform player;
     private PlayerController playerController;
-    private float lastSearchTime = 0f;
     private Rigidbody2D rb;
-    private bool isSearching = false;
+    private Vector2 startPosition;
+    private Vector2 patrolTarget;
+    private bool movingRight = true;
+    private float waitTimer = 0f;
+    private bool isWaiting = false;
+    private int currentPatrolIndex = 0;
+    private float lastSearchTime = 0f;
+    private EnemyState currentState = EnemyState.Patrolling;
+
+    private enum EnemyState
+    {
+        Patrolling,
+        Chasing,
+        Searching,
+        Attacking
+    }
 
     void Start()
     {
-        player = GameObject.FindGameObjectWithTag("Player").transform;
-        playerController = player.GetComponent<PlayerController>();
         rb = GetComponent<Rigidbody2D>();
+        startPosition = transform.position;
+        patrolTarget = GetNextPatrolTarget();
+        FindPlayer();
+
+        if (debugMode) Debug.Log($"👾 Enemigo iniciado en estado: {currentState}");
     }
 
     void Update()
     {
-        // Verificar si el jugador existe y está vivo
-        if (player == null || playerController == null || playerController.IsDead)
+        if (player == null || playerController == null)
         {
-            // Si el jugador murió, detenerse
-            if (rb != null)
-                rb.linearVelocity = Vector2.zero;
+            FindPlayer();
+            if (player == null)
+            {
+                PatrolBehavior();
+                return;
+            }
+        }
+
+        // Si el jugador está muerto
+        if (playerController.IsDead)
+        {
+            rb.linearVelocity = Vector2.zero;
+            PatrolBehavior();
             return;
         }
 
-        float distance = Vector2.Distance(transform.position, player.position);
+        float distanceToPlayer = Vector2.Distance(transform.position, player.position);
 
-        // ¿Puede VER y ATACAR al jugador?
-        if (playerController.CanBeSeenByEnemy() && playerController.CanBeAttackedByEnemy())
+        switch (currentState)
         {
-            // Perseguir en la dirección CORRECTA
-            Vector2 directionToPlayer = (player.position - transform.position);
+            case EnemyState.Patrolling:
+                PatrolBehavior();
 
-            // Solo perseguir si está dentro del rango de visión
-            if (distance <= visionRange)
-            {
-                // Normalizar la dirección y mover
-                directionToPlayer.Normalize();
-                rb.linearVelocity = directionToPlayer * moveSpeed;
+                // Transiciones
+                if (distanceToPlayer <= visionRange && playerController.CanBeSeenByEnemy())
+                {
+                    currentState = EnemyState.Chasing;
+                    if (debugMode) Debug.Log("👀 Jugador detectado - Persiguiendo");
+                }
+                else if (distanceToPlayer <= searchRange && playerController.IsInSafeZone)
+                {
+                    currentState = EnemyState.Searching;
+                    if (debugMode) Debug.Log("🔍 Jugador escondido cerca - Buscando");
+                }
+                break;
 
-                // Si está suficientemente cerca, atacar
-                if (distance <= attackRange)
+            case EnemyState.Chasing:
+                ChasePlayer(distanceToPlayer);
+
+                if (distanceToPlayer > visionRange || !playerController.CanBeSeenByEnemy())
+                {
+                    currentState = EnemyState.Patrolling;
+                    if (debugMode) Debug.Log("👣 Perdió al jugador - Patrullando");
+                }
+                else if (distanceToPlayer <= attackRange)
+                {
+                    currentState = EnemyState.Attacking;
+                }
+                break;
+
+            case EnemyState.Searching:
+                InvestigateHidingSpot(distanceToPlayer);
+
+                if (distanceToPlayer > searchRange || !playerController.IsInSafeZone)
+                {
+                    currentState = EnemyState.Patrolling;
+                    if (debugMode) Debug.Log("❌ Fuera de rango de búsqueda - Patrullando");
+                }
+                else if (playerController.CanBeSeenByEnemy())
+                {
+                    currentState = EnemyState.Chasing;
+                    if (debugMode) Debug.Log("👀 Jugador visible - Persiguiendo");
+                }
+                break;
+
+            case EnemyState.Attacking:
+                if (distanceToPlayer <= attackRange && playerController.CanBeAttackedByEnemy())
                 {
                     AttackPlayer();
                 }
-
-                isSearching = false;
-            }
-            else
-            {
-                // Si está fuera de rango, parar o patrullar
-                rb.linearVelocity = Vector2.zero;
-            }
+                else
+                {
+                    currentState = EnemyState.Chasing;
+                }
+                break;
         }
-        // ¿Está el jugador escondido cerca?
-        else if (distance <= visionRange && playerController.IsInSafeZone)
-        {
-            // Detenerse para revisar
-            rb.linearVelocity = Vector2.zero;
+    }
 
-            // Revisar el escondite (con cooldown)
-            if (Time.time - lastSearchTime >= searchCooldown)
-            {
-                isSearching = true;
-                SearchForPlayer();
-                lastSearchTime = Time.time;
-            }
-        }
-        else
+    void FindPlayer()
+    {
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
         {
-            // Comportamiento de patrulla
-            Patrol();
+            player = playerObj.transform;
+            playerController = player.GetComponent<PlayerController>();
+            if (debugMode) Debug.Log("✅ Jugador encontrado");
+        }
+    }
+
+    void ChasePlayer(float distance)
+    {
+        Vector2 directionToPlayer = (player.position - transform.position).normalized;
+        rb.linearVelocity = directionToPlayer * moveSpeed;
+
+        // Rotar sprite según dirección
+        if (directionToPlayer.x > 0)
+            transform.localScale = new Vector3(1, 1, 1);
+        else if (directionToPlayer.x < 0)
+            transform.localScale = new Vector3(-1, 1, 1);
+    }
+
+    void InvestigateHidingSpot(float distance)
+    {
+        // Detenerse
+        rb.linearVelocity = Vector2.zero;
+
+        // Revisar el escondite (con cooldown)
+        if (Time.time - lastSearchTime >= searchCooldown)
+        {
+            SearchForPlayer();
+            lastSearchTime = Time.time;
         }
     }
 
@@ -90,15 +174,14 @@ public class SimpleEnemy : MonoBehaviour
     {
         if (playerController == null || playerController.IsDead) return;
 
-        Debug.Log("👀 Enemigo revisando el escondite...");
+        if (debugMode) Debug.Log("🔦 Revisando escondite...");
 
-        // El jugador puede ser descubierto incluso sin collider
         bool found = playerController.CheckIfFound(transform.position, searchRange, searchIntensity);
 
         if (found)
         {
-            Debug.Log("¡Enemigo encontró al jugador!");
-            // El Game Over ya se maneja en el PlayerController (GetDiscovered())
+            currentState = EnemyState.Chasing;
+            if (debugMode) Debug.Log("🎯 ¡Encontrado! Persiguiendo...");
         }
     }
 
@@ -106,44 +189,112 @@ public class SimpleEnemy : MonoBehaviour
     {
         if (playerController == null || playerController.IsDead) return;
 
-        Debug.Log("⚔️ Enemigo atacando!");
-
-        // CAMBIO AQUÍ: Usar TakeDamage() en lugar de GameOver()
+        if (debugMode) Debug.Log("⚔️ Atacando al jugador!");
         playerController.TakeDamage();
     }
 
-    void Patrol()
+    void PatrolBehavior()
     {
-        // Implementa tu lógica de patrulla aquí
-        // Por ahora, solo se queda quieto
-        if (rb != null && rb.linearVelocity.magnitude > 0.1f)
+        if (!enablePatrol)
         {
-            rb.linearVelocity = Vector2.Lerp(rb.linearVelocity, Vector2.zero, Time.deltaTime * 2f);
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
+        if (patrolPoints != null && patrolPoints.Length > 0)
+        {
+            PatrolBetweenPoints();
+        }
+        else
+        {
+            SimpleBackAndForthPatrol();
         }
     }
 
-    // IMPORTANTE: Esto evita que empuje al jugador
-    void OnCollisionEnter2D(Collision2D collision)
+    void PatrolBetweenPoints()
     {
-        if (collision.gameObject.CompareTag("Player"))
+        if (patrolPoints.Length == 0) return;
+
+        Transform targetPoint = patrolPoints[currentPatrolIndex];
+
+        if (isWaiting)
         {
-            // No hacer nada - la física no empujará si el collider está desactivado
-            // El ataque se maneja por distancia, no por colisión
+            waitTimer += Time.deltaTime;
+            rb.linearVelocity = Vector2.zero;
+
+            if (waitTimer >= waitTimeAtPoint)
+            {
+                isWaiting = false;
+                waitTimer = 0f;
+                currentPatrolIndex = (currentPatrolIndex + 1) % patrolPoints.Length;
+            }
+        }
+        else
+        {
+            Vector2 direction = (targetPoint.position - transform.position).normalized;
+            rb.linearVelocity = direction * moveSpeed;
+
+            // Rotar sprite según dirección
+            if (direction.x > 0)
+                transform.localScale = new Vector3(1, 1, 1);
+            else if (direction.x < 0)
+                transform.localScale = new Vector3(-1, 1, 1);
+
+            if (Vector2.Distance(transform.position, targetPoint.position) < 0.5f)
+            {
+                isWaiting = true;
+            }
         }
     }
 
-    // También verificar OnCollisionStay2D por si acaso
-    void OnCollisionStay2D(Collision2D collision)
+    void SimpleBackAndForthPatrol()
     {
-        if (collision.gameObject.CompareTag("Player"))
+        if (isWaiting)
         {
-            // No hacer nada aquí tampoco
+            waitTimer += Time.deltaTime;
+            rb.linearVelocity = Vector2.zero;
+
+            if (waitTimer >= waitTimeAtPoint)
+            {
+                isWaiting = false;
+                waitTimer = 0f;
+                movingRight = !movingRight;
+                patrolTarget = GetNextPatrolTarget();
+            }
+        }
+        else
+        {
+            Vector2 direction = (patrolTarget - (Vector2)transform.position).normalized;
+            rb.linearVelocity = direction * moveSpeed;
+
+            // Rotar sprite
+            if (direction.x > 0)
+                transform.localScale = new Vector3(1, 1, 1);
+            else if (direction.x < 0)
+                transform.localScale = new Vector3(-1, 1, 1);
+
+            if (Vector2.Distance(transform.position, patrolTarget) < 0.5f)
+            {
+                isWaiting = true;
+            }
+        }
+    }
+
+    Vector2 GetNextPatrolTarget()
+    {
+        if (movingRight)
+        {
+            return startPosition + Vector2.right * patrolDistance;
+        }
+        else
+        {
+            return startPosition + Vector2.left * patrolDistance;
         }
     }
 
     void OnDrawGizmosSelected()
     {
-        // Rango de visión (persecución)
+        // Rango de visión
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, visionRange);
 
@@ -151,7 +302,7 @@ public class SimpleEnemy : MonoBehaviour
         Gizmos.color = Color.magenta;
         Gizmos.DrawWireSphere(transform.position, attackRange);
 
-        // Rango de búsqueda (escondites)
+        // Rango de búsqueda
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, searchRange);
     }

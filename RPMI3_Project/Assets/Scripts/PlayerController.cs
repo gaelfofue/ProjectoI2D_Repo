@@ -28,6 +28,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Safe Zone System")]
     [SerializeField] bool isInSafeZone = false;
+    [SerializeField] private SafeZone currentSafeZone;
     [SerializeField] bool isHidden = false;
     [SerializeField] float hideAlpha = 0.3f;
     [SerializeField] float timeToDisableCollider = 0.5f;
@@ -37,6 +38,7 @@ public class PlayerController : MonoBehaviour
     [Header("Ground Check")]
     [SerializeField] Transform groundCheck;
     [SerializeField] float groundCheckRadius = 0.2f;
+    [SerializeField] LayerMask groundLayer; // Asegúrate de configurar esto en el Inspector
 
     [Header("Death Settings")]
     [SerializeField] private string deathReason = "¡Te atraparon!";
@@ -62,8 +64,15 @@ public class PlayerController : MonoBehaviour
         rend = GetComponent<SpriteRenderer>();
         playerCollider = GetComponent<Collider2D>();
 
-        // Guardar el tipo de cuerpo original
         originalBodyType = rb.bodyType;
+
+        // Debug: Verificar si groundLayer está configurado
+        if (groundLayer.value == 0)
+        {
+            Debug.LogWarning("⚠️ groundLayer no configurado en PlayerController. El jugador no podrá saltar.");
+        }
+
+        GameManager.Instance.OnGameRestart.AddListener(ResetPlayer);
     }
 
     private void Update()
@@ -75,8 +84,6 @@ public class PlayerController : MonoBehaviour
         UpdateExhaustedTimer();
         UpdateAppearance();
         UpdateHideTimer();
-
-        CheckExhaustionDeath();
     }
 
     private void UpdateExhaustedTimer()
@@ -100,7 +107,7 @@ public class PlayerController : MonoBehaviour
             if (hideTimer >= timeToDisableCollider && playerCollider.enabled)
             {
                 playerCollider.enabled = false;
-                Debug.Log("Collider desactivado - Fusionado con las sombras");
+                Debug.Log("Collider desactivado");
             }
         }
         else
@@ -150,7 +157,6 @@ public class PlayerController : MonoBehaviour
             currentSpeed = runSpeed;
         }
 
-        // USAR linearVelocity (no velocity que está obsoleto en tu versión)
         rb.linearVelocity = new Vector2(horizontal * currentSpeed, rb.linearVelocity.y);
     }
 
@@ -185,14 +191,6 @@ public class PlayerController : MonoBehaviour
             {
                 isExhausted = false;
             }
-        }
-    }
-
-    private void CheckExhaustionDeath()
-    {
-        if (isExhausted && exhaustedTimer <= -3f)
-        {
-            Die("Te quedaste sin energía");
         }
     }
 
@@ -232,8 +230,12 @@ public class PlayerController : MonoBehaviour
 
         if (context.performed && IsGrounded())
         {
-            // USAR linearVelocity (no velocity)
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpingPower);
+            Debug.Log("🦘 Saltando!");
+        }
+        else if (context.performed && !IsGrounded())
+        {
+            Debug.Log("No puedo saltar: no estoy en el suelo");
         }
     }
 
@@ -244,24 +246,36 @@ public class PlayerController : MonoBehaviour
         if (context.performed && isInSafeZone)
         {
             isHidden = !isHidden;
-            Debug.Log(isHidden ? "🌑 Te has escondido" : "👤 Te has hecho visible");
+            Debug.Log(isHidden ? "🌑 Escondido" : "👤 Visible");
         }
     }
     #endregion
 
     private bool IsGrounded()
     {
-        if (!playerCollider.enabled) return false;
-
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(groundCheck.position, groundCheckRadius);
-
-        foreach (Collider2D col in colliders)
+        // Método MEJORADO con debug
+        if (groundCheck == null)
         {
-            if (col.gameObject != gameObject && !col.isTrigger && col.gameObject.CompareTag("Ground"))
+            Debug.LogError("❌ groundCheck no asignado en PlayerController");
+            return false;
+        }
+
+        // Usar LayerMask
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(groundCheck.position, groundCheckRadius, groundLayer);
+
+        // Debug: Mostrar cuántos colliders se detectaron
+        if (colliders.Length > 0)
+        {
+            foreach (Collider2D col in colliders)
             {
-                return true;
+                if (col != null && col.gameObject != gameObject && !col.isTrigger)
+                {
+                    Debug.Log($"✅ Suelo detectado: {col.gameObject.name}");
+                    return true;
+                }
             }
         }
+
         return false;
     }
 
@@ -272,9 +286,16 @@ public class PlayerController : MonoBehaviour
         if (other.CompareTag("SafeZone"))
         {
             isInSafeZone = true;
-            Debug.Log("🛡️ Entrando en zona segura");
-            Invoke("AutoHide", 0.3f);
+            currentSafeZone = other.GetComponent<SafeZone>();
+            Debug.Log("Entrando en Safe Zone");
+
+            if (currentSafeZone != null && currentSafeZone.autoHide)
+            {
+                Invoke("AutoHide", currentSafeZone.autoHideDelay);
+            }
         }
+
+
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -283,7 +304,7 @@ public class PlayerController : MonoBehaviour
         {
             isInSafeZone = false;
             isHidden = false;
-            Debug.Log("🚶 Saliendo de zona segura");
+            Debug.Log("Saliendo de Safe Zone");
             CancelInvoke("AutoHide");
         }
     }
@@ -293,47 +314,67 @@ public class PlayerController : MonoBehaviour
         if (isInSafeZone && !isHidden && !isDead)
         {
             isHidden = true;
-            Debug.Log("🌑 Te has fusionado con las sombras...");
+            Debug.Log("Auto-escondido en Safe Zone");
         }
     }
 
-    // ==================== MÉTODOS PARA ENEMIGOS ====================
+    // Metodos para enemigos
 
     public bool CanBeSeenByEnemy()
     {
-        if (isDead) return false;
-        return !(isInSafeZone && isHidden);
+        if (isDead)
+        {
+            return false;
+        }
+        if (isInSafeZone && isHidden)
+        {
+            return false;
+        }
+        return true;
     }
 
     public bool CanBeAttackedByEnemy()
     {
-        if (isDead) return false;
-        return !(isInSafeZone && isHidden);
+        if (isDead)
+        {
+            return false;
+        }
+        if (isInSafeZone && isHidden)
+        {
+            return false;
+        }
+        return true;
     }
 
     public bool CheckIfFound(Vector3 enemyPosition, float searchRange, float searchIntensity = 1f)
     {
         if (isDead) return false;
-
         if (!isInSafeZone || !isHidden) return false;
 
         float distance = Vector2.Distance(transform.position, enemyPosition);
 
         if (distance <= searchRange)
         {
-            float baseChance = 0.1f;
-            float distanceFactor = 1f - (distance / searchRange);
-            float discoveryChance = (baseChance + (distanceFactor * 0.6f)) * searchIntensity;
+            float discoveryChance = 0.1f; // Base
 
-            if (Random.value < discoveryChance)
+            // Si tenemos una SafeZone, usar su riesgo
+            if (currentSafeZone != null)
             {
-                Debug.Log("🚨 ¡TE HAN DESCUBIERTO!");
-                GetDiscovered();
-                return true;
+                discoveryChance = currentSafeZone.CheckZone(enemyPosition);
             }
             else
             {
-                Debug.Log("El enemigo revisó cerca... pero no te vio");
+                // Cálculo alternativo
+                float distanceFactor = 1f - (distance / searchRange);
+                discoveryChance = (0.1f + (distanceFactor * 0.6f)) * searchIntensity;
+            }
+
+            Debug.Log($"🎲 Chance de descubrimiento: {discoveryChance:P0}");
+
+            if (Random.value < discoveryChance)
+            {
+                GetDiscovered();
+                return true;
             }
         }
 
@@ -358,18 +399,14 @@ public class PlayerController : MonoBehaviour
 
         isDead = true;
 
-        // Congelar al jugador
-        rb.linearVelocity = Vector2.zero; // USAR linearVelocity
+        rb.linearVelocity = Vector2.zero;
         rb.bodyType = RigidbodyType2D.Static;
 
-        // Efecto visual
         rend.color = deathColor;
 
-        // Desactivar controles
         horizontal = 0;
         isRunning = false;
 
-        // Forzar visible y reactivar collider
         isHidden = false;
         if (!playerCollider.enabled)
         {
@@ -387,22 +424,6 @@ public class PlayerController : MonoBehaviour
             Debug.Log($"💀 {finalReason}");
             StartCoroutine(FallbackGameOver());
         }
-
-        Debug.Log($"💀 Jugador muerto: {finalReason}");
-    }
-
-    public void Revive()
-    {
-        isDead = false;
-
-        rb.bodyType = originalBodyType;
-        rend.color = normalColor;
-        playerCollider.enabled = true;
-        rb.linearVelocity = Vector2.zero; // USAR linearVelocity
-        horizontal = 0;
-        isRunning = false;
-
-        Debug.Log("✨ Jugador revivido");
     }
 
     private IEnumerator FallbackGameOver()
@@ -413,11 +434,31 @@ public class PlayerController : MonoBehaviour
             UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }
 
+    public void ResetPlayer()
+    {
+        isDead = false;
+        rb.bodyType = RigidbodyType2D.Dynamic;
+        rb.linearVelocity = Vector2.zero;
+
+        playerCollider.enabled = true;
+
+        isHidden = false;
+        isInSafeZone = false;
+        isRunning = false;
+        isExhausted = false;
+
+        exhaustedTimer = 0f;
+        hideTimer = 0f;
+
+        Stamina = MaxStamina;
+        rend.color = normalColor;
+    }
+    // Para debug visual
     private void OnDrawGizmos()
     {
         if (groundCheck != null)
         {
-            Gizmos.color = Color.green;
+            Gizmos.color = IsGrounded() ? Color.green : Color.red;
             Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
         }
     }
