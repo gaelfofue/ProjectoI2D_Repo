@@ -1,5 +1,6 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 using TMPro;
 using System.Collections;
 
@@ -54,10 +55,8 @@ public class MainMenuManager : MonoBehaviour
     #region UNITY METHODS
     private void Awake()
     {
-        // Asegurar TimeScale normal
         Time.timeScale = 1f;
 
-        // Guardar color original del título
         if (titleText != null)
         {
             titleOriginalColor = titleText.color;
@@ -71,7 +70,6 @@ public class MainMenuManager : MonoBehaviour
         SetupButtons();
         CheckForSaveData();
 
-        // Reproducir música del menú si AudioManager existe
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayMenuMusic();
@@ -90,8 +88,8 @@ public class MainMenuManager : MonoBehaviour
             AnimateBreathing();
         }
 
-        // ESC para cerrar paneles secundarios
-        if (Input.GetKeyDown(KeyCode.Escape))
+        // âœ… CORREGIDO: Usar nuevo Input System
+        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             HandleEscapeKey();
         }
@@ -101,20 +99,17 @@ public class MainMenuManager : MonoBehaviour
     #region INITIALIZATION
     private void InitializeMenu()
     {
-        // Mostrar solo el panel principal
         ShowPanel(mainMenuPanel);
         HidePanel(settingsPanel);
         HidePanel(creditsPanel);
         HidePanel(confirmPanel);
 
-        // Cursor visible
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
     }
 
     private void SetupButtons()
     {
-        // Main Menu Buttons
         if (newGameButton != null)
         {
             newGameButton.onClick.RemoveAllListeners();
@@ -150,7 +145,6 @@ public class MainMenuManager : MonoBehaviour
             AddButtonSounds(quitButton);
         }
 
-        // Confirm Panel Buttons
         if (confirmYesButton != null)
         {
             confirmYesButton.onClick.RemoveAllListeners();
@@ -168,7 +162,6 @@ public class MainMenuManager : MonoBehaviour
 
     private void CheckForSaveData()
     {
-        // Verificar si hay datos guardados
         if (GameData.instance != null)
         {
             hasSaveData = GameData.instance.currentLevel > 1 ||
@@ -177,17 +170,14 @@ public class MainMenuManager : MonoBehaviour
         }
         else
         {
-            // Verificar directamente en PlayerPrefs
             hasSaveData = PlayerPrefs.GetInt("CurrentLevel", 1) > 1 ||
                           PlayerPrefs.GetFloat("PlayTime", 0f) > 0;
         }
 
-        // Activar/desactivar botón de continuar
         if (continueButton != null)
         {
             continueButton.interactable = hasSaveData;
 
-            // Opcional: cambiar visualmente si no hay datos
             TextMeshProUGUI buttonText = continueButton.GetComponentInChildren<TextMeshProUGUI>();
             if (buttonText != null && !hasSaveData)
             {
@@ -202,9 +192,8 @@ public class MainMenuManager : MonoBehaviour
     {
         if (hasSaveData)
         {
-            // Preguntar confirmación si hay datos guardados
             ShowConfirmation(
-                "¿Empezar nueva partida?\n<size=70%>Se perderá el progreso anterior.</size>",
+                "Â¿Empezar nueva partida?\n<size=70%>Se perderÃ¡ el progreso anterior.</size>",
                 StartNewGame
             );
         }
@@ -235,7 +224,7 @@ public class MainMenuManager : MonoBehaviour
     private void OnQuitClicked()
     {
         ShowConfirmation(
-            "¿Seguro que quieres salir?",
+            "Â¿Seguro que quieres salir?",
             QuitGame
         );
     }
@@ -257,7 +246,6 @@ public class MainMenuManager : MonoBehaviour
     #region GAME ACTIONS
     private void StartNewGame()
     {
-        // Resetear datos si GameData existe
         if (GameData.instance != null)
         {
             GameData.instance.ResetAllData();
@@ -268,13 +256,11 @@ public class MainMenuManager : MonoBehaviour
             PlayerPrefs.Save();
         }
 
-        // Cargar primera escena
         LoadGameScene(firstLevelScene);
     }
 
     private void ContinueGame()
     {
-        // Determinar qué escena cargar basado en el progreso
         string sceneToLoad = GetSceneForCurrentProgress();
         LoadGameScene(sceneToLoad);
     }
@@ -292,7 +278,6 @@ public class MainMenuManager : MonoBehaviour
             currentLevel = PlayerPrefs.GetInt("CurrentLevel", 1);
         }
 
-        // Mapear nivel a escena
         return currentLevel switch
         {
             1 => firstLevelScene,
@@ -304,7 +289,8 @@ public class MainMenuManager : MonoBehaviour
 
     private void LoadGameScene(string sceneName)
     {
-        // Usar SceneLoader si existe
+        Debug.Log($"[MainMenu] Intentando cargar escena: {sceneName}");
+
         if (SceneLoader.Instance != null)
         {
             SceneLoader.Instance.LoadScene(sceneName, true);
@@ -312,13 +298,13 @@ public class MainMenuManager : MonoBehaviour
         else
         {
             // Fallback directo
+            Debug.LogWarning("[MainMenu] SceneLoader no encontrado, usando carga directa");
             UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
         }
     }
 
     private void QuitGame()
     {
-        // Guardar datos antes de salir
         if (GameData.instance != null)
         {
             GameData.instance.SaveData();
@@ -339,7 +325,6 @@ public class MainMenuManager : MonoBehaviour
         {
             panel.SetActive(true);
 
-            // Animar fade in si tiene CanvasGroup
             CanvasGroup cg = panel.GetComponent<CanvasGroup>();
             if (cg != null)
             {
@@ -383,7 +368,6 @@ public class MainMenuManager : MonoBehaviour
         cg.alpha = to;
     }
 
-    // Método público para volver al menú principal desde otros paneles
     public void BackToMainMenu()
     {
         HidePanel(settingsPanel);
@@ -412,7 +396,6 @@ public class MainMenuManager : MonoBehaviour
     #region ANIMATIONS
     private void AnimateTitle()
     {
-        // Efecto de pulso sutil en el título (como si respirara)
         float pulse = Mathf.Sin(Time.time * titlePulseSpeed) * titlePulseIntensity;
         float alpha = titleOriginalAlpha + pulse;
 
@@ -423,7 +406,6 @@ public class MainMenuManager : MonoBehaviour
 
     private void AnimateBreathing()
     {
-        // Efecto de "respiración" en el overlay oscuro
         float breath = Mathf.Sin(Time.time * breathingSpeed) * breathingIntensity;
         fadeOverlay.alpha = Mathf.Clamp01(breathingIntensity + breath);
     }
@@ -432,17 +414,14 @@ public class MainMenuManager : MonoBehaviour
     #region AUDIO
     private void AddButtonSounds(Button button)
     {
-        // Añadir sonidos de hover y click si AudioManager existe
         if (AudioManager.Instance == null) return;
 
-        // Añadir EventTrigger para hover
         UnityEngine.EventSystems.EventTrigger trigger = button.gameObject.GetComponent<UnityEngine.EventSystems.EventTrigger>();
         if (trigger == null)
         {
             trigger = button.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
         }
 
-        // Hover sound
         if (buttonHoverSound != null)
         {
             UnityEngine.EventSystems.EventTrigger.Entry hoverEntry = new UnityEngine.EventSystems.EventTrigger.Entry();
@@ -451,7 +430,6 @@ public class MainMenuManager : MonoBehaviour
             trigger.triggers.Add(hoverEntry);
         }
 
-        // Click sound
         if (buttonClickSound != null)
         {
             UnityEngine.EventSystems.EventTrigger.Entry clickEntry = new UnityEngine.EventSystems.EventTrigger.Entry();

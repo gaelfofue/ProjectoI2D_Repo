@@ -132,70 +132,94 @@ public class SceneLoader : MonoBehaviour
     private IEnumerator LoadSceneRoutine(object scene, bool showLoading)
     {
         isLoading = true;
-
-        // Asegurar timeScale normal para la transición
         Time.timeScale = 1f;
-
-        // Fade out
         yield return StartCoroutine(FadeOut());
 
-        // Mostrar pantalla de carga si es necesario
         if (showLoading && loadingScreenPanel != null)
         {
             loadingScreenPanel.SetActive(true);
             if (loadingProgressBar != null) loadingProgressBar.value = 0f;
         }
 
-        // Cargar escena
-        AsyncOperation operation;
+        AsyncOperation operation = null;
+
+        // ✅ CORREGIDO: Verificar que la escena existe antes de cargarla
         if (scene is string sceneName)
         {
-            operation = SceneManager.LoadSceneAsync(sceneName);
+            // Verificar si la escena está en Build Settings
+            int sceneIndex = UnityEngine.SceneManagement.SceneUtility.GetBuildIndexByScenePath("Assets/Scenes/" + sceneName + ".unity");
+
+            // También intentar sin la ruta completa
+            if (sceneIndex == -1)
+            {
+                for (int i = 0; i < UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings; i++)
+                {
+                    string path = UnityEngine.SceneManagement.SceneUtility.GetScenePathByBuildIndex(i);
+                    if (path.Contains(sceneName))
+                    {
+                        sceneIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            if (sceneIndex == -1)
+            {
+                Debug.LogError($"[SceneLoader] ¡La escena '{sceneName}' no existe en Build Settings!");
+                Debug.LogError("[SceneLoader] Ve a File → Build Settings y añade la escena.");
+
+                // Ocultar pantalla de carga y hacer fade in
+                if (loadingScreenPanel != null) loadingScreenPanel.SetActive(false);
+                yield return StartCoroutine(FadeIn());
+                isLoading = false;
+                yield break;
+            }
+
+            operation = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName);
         }
-        else
+        else if (scene is int sceneIndex2)
         {
-            operation = SceneManager.LoadSceneAsync((int)scene);
+            if (sceneIndex2 >= UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings)
+            {
+                Debug.LogError($"[SceneLoader] ¡El índice de escena {sceneIndex2} no existe!");
+                if (loadingScreenPanel != null) loadingScreenPanel.SetActive(false);
+                yield return StartCoroutine(FadeIn());
+                isLoading = false;
+                yield break;
+            }
+
+            operation = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneIndex2);
+        }
+
+        // ✅ CORREGIDO: Verificar que operation no sea null
+        if (operation == null)
+        {
+            Debug.LogError("[SceneLoader] Error al crear AsyncOperation");
+            if (loadingScreenPanel != null) loadingScreenPanel.SetActive(false);
+            yield return StartCoroutine(FadeIn());
+            isLoading = false;
+            yield break;
         }
 
         operation.allowSceneActivation = false;
-
         float elapsedTime = 0f;
 
         while (!operation.isDone)
         {
             elapsedTime += Time.unscaledDeltaTime;
-
-            // Actualizar barra de progreso
             float progress = Mathf.Clamp01(operation.progress / 0.9f);
 
-            if (loadingProgressBar != null)
-            {
-                loadingProgressBar.value = progress;
-            }
+            if (loadingProgressBar != null) loadingProgressBar.value = progress;
+            if (loadingText != null) loadingText.text = $"Cargando... {(progress * 100):F0}%";
 
-            if (loadingText != null)
-            {
-                loadingText.text = $"Cargando... {(progress * 100):F0}%";
-            }
-
-            // Activar escena cuando esté lista
             if (operation.progress >= 0.9f && elapsedTime >= minimumLoadTime)
-            {
                 operation.allowSceneActivation = true;
-            }
 
             yield return null;
         }
 
-        // Ocultar pantalla de carga
-        if (loadingScreenPanel != null)
-        {
-            loadingScreenPanel.SetActive(false);
-        }
-
+        if (loadingScreenPanel != null) loadingScreenPanel.SetActive(false);
         isLoading = false;
-
-        // Fade in se hace automáticamente en OnSceneLoaded
     }
     #endregion
 
