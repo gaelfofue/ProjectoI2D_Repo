@@ -132,57 +132,51 @@ public class GameManager : MonoBehaviour
 
     public void GameOver(string reason = "")
     {
-        if (isGameOver)
-        {
-            Debug.LogWarning("GameOver ya estaba activo, ignorando llamada duplicada");
-            return;
-        }
+        Debug.Log($"🎮 [GameManager] GameOver llamado. isGameOver={isGameOver}, reason='{reason}'");
 
-        Debug.Log("GAMEMANAGER.GAMEOVER LLAMADO 🔥🔥🔥");
-        Debug.Log($"Razón: '{reason}'");
+        if (isGameOver) return;
 
         isGameOver = true;
         gameOverReason = string.IsNullOrEmpty(reason) ? "¡Te atraparon!" : reason;
         Time.timeScale = 0f;
-
-        // Mostrar cursor
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // Registrar muerte en datos persistentes
+        // Registrar muerte
         if (GameData.instance != null)
         {
             GameData.instance.RegisterDeath();
-            Debug.Log("Muerte registrada en GameData");
         }
 
-        // Audio
-        if (AudioManager.Instance != null)
+        // ✅ CORREGIDO: Audio en try-catch para no bloquear el GameOver
+        try
         {
-            AudioManager.Instance.PlayGameOverMusic();
-            AudioManager.Instance.PlayDeathSound();
-            AudioManager.Instance.StopBreathing();
-            Debug.Log("Audio de Game Over reproducido");
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.StopBreathing();
+                AudioManager.Instance.PlayGameOverMusic();
+                AudioManager.Instance.PlayDeathSound();
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[GameManager] Error en audio de GameOver (ignorado): {e.Message}");
         }
 
-        Debug.Log($"GAME OVER: {gameOverReason}");
+        Debug.Log($"🎮 GAME OVER: {gameOverReason}");
 
-        // VERIFICAR EVENTO ANTES DE INVOCAR
+        // ✅ IMPORTANTE: Esto debe ejecutarse siempre
         if (OnGameOver != null)
         {
-            int listenerCount = OnGameOver.GetPersistentEventCount();
-            Debug.Log($"OnGameOver tiene {listenerCount} listeners");
-
-            Debug.Log("Invocando OnGameOver...");
+            Debug.Log($"🎮 Invocando OnGameOver con {OnGameOver.GetPersistentEventCount()} listeners persistentes");
             OnGameOver.Invoke(gameOverReason);
-            Debug.Log("OnGameOver invocado");
+            Debug.Log("🎮 OnGameOver.Invoke() completado");
         }
         else
         {
-            Debug.LogError("❌❌❌ OnGameOver ES NULL! ❌❌❌");
+            Debug.LogError("🎮 ❌ OnGameOver es NULL!");
         }
     }
-
     public void RestartLevel()
     {
         Debug.Log("Reiniciando nivel...");

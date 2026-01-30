@@ -121,41 +121,51 @@ public class AudioManager : MonoBehaviour
 
     private void InitializeAudioSources()
     {
-        if (musicSource == null)
-        {
-            GameObject musicObj = new GameObject("MusicSource");
-            musicObj.transform.SetParent(transform);
-            musicSource = musicObj.AddComponent<AudioSource>();
-            musicSource.loop = true;
-            musicSource.playOnAwake = false;
-        }
+        // ✅ IMPORTANTE: Siempre crear nuevos AudioSources, no usar los serializados
+        // Esto evita referencias rotas al cambiar de escena
 
-        if (sfxSource == null)
-        {
-            GameObject sfxObj = new GameObject("SFXSource");
-            sfxObj.transform.SetParent(transform);
-            sfxSource = sfxObj.AddComponent<AudioSource>();
-            sfxSource.playOnAwake = false;
-        }
+        // Limpiar referencias potencialmente rotas
+        musicSource = null;
+        sfxSource = null;
+        breathingSource = null;
+        ambientSource = null;
 
-        if (breathingSource == null)
-        {
-            GameObject breathObj = new GameObject("BreathingSource");
-            breathObj.transform.SetParent(transform);
-            breathingSource = breathObj.AddComponent<AudioSource>();
-            breathingSource.loop = true;
-            breathingSource.playOnAwake = false;
-        }
+        // Crear Music Source
+        GameObject musicObj = new GameObject("MusicSource");
+        musicObj.transform.SetParent(transform);
+        musicSource = musicObj.AddComponent<AudioSource>();
+        musicSource.loop = true;
+        musicSource.playOnAwake = false;
 
-        if (ambientSource == null)
-        {
-            GameObject ambientObj = new GameObject("AmbientSource");
-            ambientObj.transform.SetParent(transform);
-            ambientSource = ambientObj.AddComponent<AudioSource>();
-            ambientSource.loop = true;
-            ambientSource.playOnAwake = false;
-        }
+        // Crear SFX Source
+        GameObject sfxObj = new GameObject("SFXSource");
+        sfxObj.transform.SetParent(transform);
+        sfxSource = sfxObj.AddComponent<AudioSource>();
+        sfxSource.playOnAwake = false;
+
+        // Crear Breathing Source
+        GameObject breathObj = new GameObject("BreathingSource");
+        breathObj.transform.SetParent(transform);
+        breathingSource = breathObj.AddComponent<AudioSource>();
+        breathingSource.loop = true;
+        breathingSource.playOnAwake = false;
+
+        // Crear Ambient Source
+        GameObject ambientObj = new GameObject("AmbientSource");
+        ambientObj.transform.SetParent(transform);
+        ambientSource = ambientObj.AddComponent<AudioSource>();
+        ambientSource.loop = true;
+        ambientSource.playOnAwake = false;
+
+        Debug.Log("[AudioManager] AudioSources creados correctamente");
     }
+
+    // ✅ Método helper para verificar si un AudioSource es válido
+    private bool IsAudioSourceValid(AudioSource source)
+    {
+        return source != null && source.gameObject != null;
+    }
+
 
     private void LoadVolumeSettings()
     {
@@ -276,12 +286,22 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    public void StopMusic(float fadeTime = 1f)
+    public void StopBreathing()
     {
-        if (musicCoroutine != null) StopCoroutine(musicCoroutine);
-        musicCoroutine = StartCoroutine(FadeOutMusic(fadeTime));
-    }
+        if (breathingCoroutine != null)
+        {
+            StopCoroutine(breathingCoroutine);
+            breathingCoroutine = null;
+        }
 
+        // ✅ CORREGIDO: Verificar antes de usar
+        if (IsAudioSourceValid(breathingSource))
+        {
+            breathingSource.Stop();
+        }
+
+        currentBreathingState = BreathingState.Normal;
+    }
     private IEnumerator FadeOutMusic(float fadeTime)
     {
         float startVolume = musicSource.volume;
@@ -302,7 +322,8 @@ public class AudioManager : MonoBehaviour
     #region SFX SYSTEM
     public void PlaySFX(AudioClip clip, float volumeScale = 1f)
     {
-        if (clip != null && sfxSource != null)
+        // ✅ CORREGIDO: Verificar validez
+        if (clip != null && IsAudioSourceValid(sfxSource))
         {
             float volume = SFXVolume * MasterVolume * volumeScale;
             sfxSource.PlayOneShot(clip, volume);
@@ -339,12 +360,21 @@ public class AudioManager : MonoBehaviour
 
     private IEnumerator TransitionBreathing(AudioClip newClip)
     {
+        // ✅ CORREGIDO: Verificar validez del AudioSource
+        if (!IsAudioSourceValid(breathingSource))
+        {
+            Debug.LogWarning("[AudioManager] BreathingSource no válido, saltando transición");
+            yield break;
+        }
+
         // Fade out
-        while (breathingSource.volume > 0)
+        while (breathingSource != null && breathingSource.volume > 0)
         {
             breathingSource.volume -= Time.deltaTime * breathingFadeSpeed;
             yield return null;
         }
+
+        if (!IsAudioSourceValid(breathingSource)) yield break;
 
         breathingSource.clip = newClip;
 
@@ -355,21 +385,15 @@ public class AudioManager : MonoBehaviour
 
             float targetVolume = SFXVolume * MasterVolume * 0.7f;
 
-            while (breathingSource.volume < targetVolume)
+            while (breathingSource != null && breathingSource.volume < targetVolume)
             {
                 breathingSource.volume += Time.deltaTime * breathingFadeSpeed;
                 yield return null;
             }
 
-            breathingSource.volume = targetVolume;
+            if (IsAudioSourceValid(breathingSource))
+                breathingSource.volume = targetVolume;
         }
-    }
-
-    public void StopBreathing()
-    {
-        if (breathingCoroutine != null) StopCoroutine(breathingCoroutine);
-        breathingSource.Stop();
-        currentBreathingState = BreathingState.Normal;
     }
 
     public BreathingState GetCurrentBreathingState() => currentBreathingState;
