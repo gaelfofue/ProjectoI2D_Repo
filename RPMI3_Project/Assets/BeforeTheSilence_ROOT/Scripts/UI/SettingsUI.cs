@@ -1,5 +1,6 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 using TMPro;
 
 public class SettingsMenuUI : MonoBehaviour
@@ -53,12 +54,20 @@ public class SettingsMenuUI : MonoBehaviour
         LoadCurrentSettings();
         hasUnsavedChanges = false;
     }
+
+    private void Update()
+    {
+        // ESC para volver
+        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            OnBackClicked();
+        }
+    }
     #endregion
 
     #region SETUP
     private void SetupSliders()
     {
-        // Master Volume
         if (masterVolumeSlider != null)
         {
             masterVolumeSlider.minValue = 0f;
@@ -66,7 +75,6 @@ public class SettingsMenuUI : MonoBehaviour
             masterVolumeSlider.onValueChanged.AddListener(OnMasterVolumeChanged);
         }
 
-        // Music Volume
         if (musicVolumeSlider != null)
         {
             musicVolumeSlider.minValue = 0f;
@@ -74,7 +82,6 @@ public class SettingsMenuUI : MonoBehaviour
             musicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
         }
 
-        // SFX Volume
         if (sfxVolumeSlider != null)
         {
             sfxVolumeSlider.minValue = 0f;
@@ -86,34 +93,22 @@ public class SettingsMenuUI : MonoBehaviour
     private void SetupToggles()
     {
         if (fullscreenToggle != null)
-        {
             fullscreenToggle.onValueChanged.AddListener(OnFullscreenChanged);
-        }
 
         if (screenShakeToggle != null)
-        {
             screenShakeToggle.onValueChanged.AddListener(OnScreenShakeChanged);
-        }
 
         if (showHintsToggle != null)
-        {
             showHintsToggle.onValueChanged.AddListener(OnShowHintsChanged);
-        }
     }
 
     private void SetupDropdowns()
     {
-        // Resolution Dropdown
         if (resolutionDropdown != null)
-        {
             SetupResolutionDropdown();
-        }
 
-        // Quality Dropdown
         if (qualityDropdown != null)
-        {
             SetupQualityDropdown();
-        }
     }
 
     private void SetupResolutionDropdown()
@@ -127,13 +122,9 @@ public class SettingsMenuUI : MonoBehaviour
         {
             string option = $"{availableResolutions[i].width} x {availableResolutions[i].height}";
 
-            // Evitar duplicados
             if (!options.Contains(option))
-            {
                 options.Add(option);
-            }
 
-            // Marcar resolución actual
             if (availableResolutions[i].width == Screen.currentResolution.width &&
                 availableResolutions[i].height == Screen.currentResolution.height)
             {
@@ -181,8 +172,17 @@ public class SettingsMenuUI : MonoBehaviour
     #region LOAD/SAVE SETTINGS
     private void LoadCurrentSettings()
     {
-        // Cargar desde GameData si existe
-        if (GameData.instance != null)
+        // âœ… CORREGIDO: Cargar desde AudioManager si existe
+        if (AudioManager.Instance != null)
+        {
+            if (masterVolumeSlider != null)
+                masterVolumeSlider.value = AudioManager.Instance.MasterVolume;
+            if (musicVolumeSlider != null)
+                musicVolumeSlider.value = AudioManager.Instance.MusicVolume;
+            if (sfxVolumeSlider != null)
+                sfxVolumeSlider.value = AudioManager.Instance.SFXVolume;
+        }
+        else if (GameData.instance != null)
         {
             if (masterVolumeSlider != null)
                 masterVolumeSlider.value = GameData.instance.masterVolume;
@@ -193,7 +193,6 @@ public class SettingsMenuUI : MonoBehaviour
         }
         else
         {
-            // Cargar desde PlayerPrefs directamente
             if (masterVolumeSlider != null)
                 masterVolumeSlider.value = PlayerPrefs.GetFloat("MasterVolume", 1f);
             if (musicVolumeSlider != null)
@@ -202,18 +201,15 @@ public class SettingsMenuUI : MonoBehaviour
                 sfxVolumeSlider.value = PlayerPrefs.GetFloat("SFXVolume", 1f);
         }
 
-        // Cargar display settings
         if (fullscreenToggle != null)
             fullscreenToggle.isOn = Screen.fullScreen;
 
-        // Cargar gameplay settings desde PlayerPrefs
         if (screenShakeToggle != null)
             screenShakeToggle.isOn = PlayerPrefs.GetInt("ScreenShake", 1) == 1;
 
         if (showHintsToggle != null)
             showHintsToggle.isOn = PlayerPrefs.GetInt("ShowHints", 1) == 1;
 
-        // Actualizar labels
         UpdateVolumeLabels();
     }
 
@@ -222,27 +218,14 @@ public class SettingsMenuUI : MonoBehaviour
         // Guardar en GameData si existe
         if (GameData.instance != null)
         {
-            if (masterVolumeSlider != null)
-                GameData.instance.masterVolume = masterVolumeSlider.value;
-            if (musicVolumeSlider != null)
-                GameData.instance.musicVolume = musicVolumeSlider.value;
-            if (sfxVolumeSlider != null)
-                GameData.instance.sfxVolume = sfxVolumeSlider.value;
-
             GameData.instance.SaveData();
         }
-        else
-        {
-            // Guardar directamente en PlayerPrefs
-            if (masterVolumeSlider != null)
-                PlayerPrefs.SetFloat("MasterVolume", masterVolumeSlider.value);
-            if (musicVolumeSlider != null)
-                PlayerPrefs.SetFloat("MusicVolume", musicVolumeSlider.value);
-            if (sfxVolumeSlider != null)
-                PlayerPrefs.SetFloat("SFXVolume", sfxVolumeSlider.value);
-        }
 
-        // Guardar gameplay settings
+        // Guardar en PlayerPrefs como backup
+        PlayerPrefs.SetFloat("MasterVolume", masterVolumeSlider?.value ?? 1f);
+        PlayerPrefs.SetFloat("MusicVolume", musicVolumeSlider?.value ?? 1f);
+        PlayerPrefs.SetFloat("SFXVolume", sfxVolumeSlider?.value ?? 1f);
+
         if (screenShakeToggle != null)
             PlayerPrefs.SetInt("ScreenShake", screenShakeToggle.isOn ? 1 : 0);
         if (showHintsToggle != null)
@@ -251,7 +234,7 @@ public class SettingsMenuUI : MonoBehaviour
         PlayerPrefs.Save();
         hasUnsavedChanges = false;
 
-        Debug.Log("Settings guardados");
+        Debug.Log("[Settings] ConfiguraciÃ³n guardada");
     }
     #endregion
 
@@ -261,10 +244,10 @@ public class SettingsMenuUI : MonoBehaviour
         hasUnsavedChanges = true;
         UpdateVolumeLabel(masterVolumeLabel, value);
 
-        // Aplicar inmediatamente para preview
-        if (GameData.instance != null)
+        // âœ… CORREGIDO: Aplicar inmediatamente a travÃ©s de AudioManager
+        if (AudioManager.Instance != null)
         {
-            GameData.instance.masterVolume = value;
+            AudioManager.Instance.SetMasterVolume(value);
         }
     }
 
@@ -273,9 +256,10 @@ public class SettingsMenuUI : MonoBehaviour
         hasUnsavedChanges = true;
         UpdateVolumeLabel(musicVolumeLabel, value);
 
-        if (GameData.instance != null)
+        // âœ… CORREGIDO: Aplicar inmediatamente
+        if (AudioManager.Instance != null)
         {
-            GameData.instance.musicVolume = value;
+            AudioManager.Instance.SetMusicVolume(value);
         }
     }
 
@@ -284,9 +268,10 @@ public class SettingsMenuUI : MonoBehaviour
         hasUnsavedChanges = true;
         UpdateVolumeLabel(sfxVolumeLabel, value);
 
-        if (GameData.instance != null)
+        // âœ… CORREGIDO: Aplicar inmediatamente
+        if (AudioManager.Instance != null)
         {
-            GameData.instance.sfxVolume = value;
+            AudioManager.Instance.SetSFXVolume(value);
         }
     }
 
@@ -328,8 +313,6 @@ public class SettingsMenuUI : MonoBehaviour
     {
         if (hasUnsavedChanges)
         {
-            // Podrías mostrar un popup de confirmación aquí
-            // Por ahora, guardamos automáticamente
             SaveSettings();
         }
 
@@ -346,7 +329,6 @@ public class SettingsMenuUI : MonoBehaviour
 
     private void OnResetClicked()
     {
-        // Resetear a valores por defecto
         if (masterVolumeSlider != null) masterVolumeSlider.value = 1f;
         if (musicVolumeSlider != null) musicVolumeSlider.value = 1f;
         if (sfxVolumeSlider != null) sfxVolumeSlider.value = 1f;
