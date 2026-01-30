@@ -6,13 +6,8 @@ public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }
 
-    [Header("Audio Sources")]
-    [SerializeField] private AudioSource musicSource;
-    [SerializeField] private AudioSource sfxSource;
-    [SerializeField] private AudioSource breathingSource;
-    [SerializeField] private AudioSource ambientSource;
-
-    [Header("Music Clips")]
+    #region SERIALIZED FIELDS
+    [Header("Music Clips (Para uso directo - Opcional)")]
     [SerializeField] private AudioClip menuMusic;
     [SerializeField] private AudioClip gameplayMusic;
     [SerializeField] private AudioClip tensionMusic;
@@ -36,17 +31,26 @@ public class AudioManager : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private float musicFadeSpeed = 1f;
     [SerializeField] private float breathingFadeSpeed = 2f;
-    [SerializeField] private float crossfadeDuration = 1f;
+    #endregion
 
-    // ✅ Variables locales de volumen (para cuando no hay GameData)
+    #region PRIVATE VARIABLES
+    // Audio Sources
+    private AudioSource musicSource;
+    private AudioSource sfxSource;
+    private AudioSource breathingSource;
+    private AudioSource ambientSource;
+
+    // Volume settings (local backup)
     private float _masterVolume = 1f;
     private float _musicVolume = 1f;
     private float _sfxVolume = 1f;
 
+    // State
     private BreathingState currentBreathingState = BreathingState.Normal;
     private Coroutine breathingCoroutine;
     private Coroutine musicCoroutine;
     private Coroutine heartbeatCoroutine;
+    #endregion
 
     #region PROPERTIES
     public float MasterVolume
@@ -86,16 +90,16 @@ public class AudioManager : MonoBehaviour
     }
     #endregion
 
+    #region UNITY METHODS
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
 
-            // ✅ CORREGIDO: Verificar que es objeto raíz
+            // Asegurar que es objeto raíz
             if (transform.parent != null)
             {
-                Debug.LogWarning("[AudioManager] Moviendo a raíz para DontDestroyOnLoad");
                 transform.SetParent(null);
             }
 
@@ -103,6 +107,8 @@ public class AudioManager : MonoBehaviour
             InitializeAudioSources();
             LoadVolumeSettings();
             SceneManager.sceneLoaded += OnSceneLoaded;
+
+            Debug.Log("[AudioManager] Inicializado correctamente");
         }
         else
         {
@@ -119,11 +125,16 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        Debug.Log($"[AudioManager] Escena '{scene.name}' cargada");
+        UpdateAllVolumes();
+    }
+    #endregion
+
+    #region INITIALIZATION
     private void InitializeAudioSources()
     {
-        // ✅ IMPORTANTE: Siempre crear nuevos AudioSources, no usar los serializados
-        // Esto evita referencias rotas al cambiar de escena
-
         // Limpiar referencias potencialmente rotas
         musicSource = null;
         sfxSource = null;
@@ -160,13 +171,6 @@ public class AudioManager : MonoBehaviour
         Debug.Log("[AudioManager] AudioSources creados correctamente");
     }
 
-    // ✅ Método helper para verificar si un AudioSource es válido
-    private bool IsAudioSourceValid(AudioSource source)
-    {
-        return source != null && source.gameObject != null;
-    }
-
-
     private void LoadVolumeSettings()
     {
         if (GameData.instance != null)
@@ -185,35 +189,32 @@ public class AudioManager : MonoBehaviour
         UpdateAllVolumes();
     }
 
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    private bool IsAudioSourceValid(AudioSource source)
     {
-        Debug.Log($"[AudioManager] Escena '{scene.name}' cargada");
-        UpdateAllVolumes();
+        return source != null && source.gameObject != null;
     }
+    #endregion
 
-    // ✅ NUEVO: Método público para actualizar todos los volúmenes
+    #region VOLUME CONTROL
     public void UpdateAllVolumes()
     {
         float master = MasterVolume;
         float music = MusicVolume;
         float sfx = SFXVolume;
 
-        if (musicSource != null)
+        if (IsAudioSourceValid(musicSource))
             musicSource.volume = music * master;
 
-        if (sfxSource != null)
+        if (IsAudioSourceValid(sfxSource))
             sfxSource.volume = sfx * master;
 
-        if (breathingSource != null)
+        if (IsAudioSourceValid(breathingSource))
             breathingSource.volume = sfx * master * 0.7f;
 
-        if (ambientSource != null)
+        if (IsAudioSourceValid(ambientSource))
             ambientSource.volume = sfx * master * 0.5f;
-
-        Debug.Log($"[AudioManager] Volúmenes actualizados - Master: {master:F2}, Music: {music:F2}, SFX: {sfx:F2}");
     }
 
-    // ✅ NUEVO: Métodos para establecer volumen desde UI
     public void SetMasterVolume(float value)
     {
         MasterVolume = value;
@@ -228,8 +229,12 @@ public class AudioManager : MonoBehaviour
     {
         SFXVolume = value;
     }
+    #endregion
 
     #region MUSIC SYSTEM
+    /// <summary>
+    /// Reproducir música con clip específico (MÉTODO PRINCIPAL)
+    /// </summary>
     public void PlayMusic(AudioClip clip, float fadeTime = 1f)
     {
         if (clip == null)
@@ -238,19 +243,68 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
+        // Si es el mismo clip y está reproduciéndose, no hacer nada
+        if (IsAudioSourceValid(musicSource) && musicSource.clip == clip && musicSource.isPlaying)
+        {
+            return;
+        }
+
         if (musicCoroutine != null) StopCoroutine(musicCoroutine);
         musicCoroutine = StartCoroutine(CrossfadeMusic(clip, fadeTime));
     }
 
+    /// <summary>
+    /// Métodos de conveniencia para música predefinida
+    /// </summary>
+    public void PlayMenuMusic() => PlayMusic(menuMusic);
     public void PlayGameplayMusic() => PlayMusic(gameplayMusic);
     public void PlayTensionMusic() => PlayMusic(tensionMusic);
-    public void PlayMenuMusic() => PlayMusic(menuMusic);
     public void PlayGameOverMusic() => PlayMusic(gameOverMusic, 0.5f);
+
+    /// <summary>
+    /// Detener música con fade
+    /// </summary>
+    public void StopMusic(float fadeTime = 1f)
+    {
+        if (musicCoroutine != null) StopCoroutine(musicCoroutine);
+        musicCoroutine = StartCoroutine(FadeOutMusic(fadeTime));
+    }
+
+    /// <summary>
+    /// Pausar/Reanudar música
+    /// </summary>
+    public void SetMusicPaused(bool paused)
+    {
+        if (!IsAudioSourceValid(musicSource)) return;
+
+        if (paused)
+            musicSource.Pause();
+        else
+            musicSource.UnPause();
+    }
+
+    /// <summary>
+    /// Verificar si hay música reproduciéndose
+    /// </summary>
+    public bool IsMusicPlaying()
+    {
+        return IsAudioSourceValid(musicSource) && musicSource.isPlaying;
+    }
+
+    /// <summary>
+    /// Obtener el clip de música actual
+    /// </summary>
+    public AudioClip GetCurrentMusicClip()
+    {
+        return IsAudioSourceValid(musicSource) ? musicSource.clip : null;
+    }
 
     private IEnumerator CrossfadeMusic(AudioClip newClip, float fadeTime)
     {
-        // Fade out
-        if (musicSource.isPlaying)
+        if (!IsAudioSourceValid(musicSource)) yield break;
+
+        // Fade out si hay música reproduciéndose
+        if (musicSource.isPlaying && musicSource.volume > 0)
         {
             float startVolume = musicSource.volume;
             float elapsed = 0f;
@@ -258,10 +312,13 @@ public class AudioManager : MonoBehaviour
             while (elapsed < fadeTime)
             {
                 elapsed += Time.unscaledDeltaTime;
-                musicSource.volume = Mathf.Lerp(startVolume, 0f, elapsed / fadeTime);
+                if (IsAudioSourceValid(musicSource))
+                    musicSource.volume = Mathf.Lerp(startVolume, 0f, elapsed / fadeTime);
                 yield return null;
             }
         }
+
+        if (!IsAudioSourceValid(musicSource)) yield break;
 
         // Cambiar clip
         musicSource.clip = newClip;
@@ -278,51 +335,44 @@ public class AudioManager : MonoBehaviour
             while (elapsed < fadeTime)
             {
                 elapsed += Time.unscaledDeltaTime;
-                musicSource.volume = Mathf.Lerp(0f, targetVolume, elapsed / fadeTime);
+                if (IsAudioSourceValid(musicSource))
+                    musicSource.volume = Mathf.Lerp(0f, targetVolume, elapsed / fadeTime);
                 yield return null;
             }
 
-            musicSource.volume = targetVolume;
+            if (IsAudioSourceValid(musicSource))
+                musicSource.volume = targetVolume;
         }
+
+        Debug.Log($"[AudioManager] Música cambiada a: {newClip?.name ?? "None"}");
     }
 
-    public void StopBreathing()
-    {
-        if (breathingCoroutine != null)
-        {
-            StopCoroutine(breathingCoroutine);
-            breathingCoroutine = null;
-        }
-
-        // ✅ CORREGIDO: Verificar antes de usar
-        if (IsAudioSourceValid(breathingSource))
-        {
-            breathingSource.Stop();
-        }
-
-        currentBreathingState = BreathingState.Normal;
-    }
     private IEnumerator FadeOutMusic(float fadeTime)
     {
+        if (!IsAudioSourceValid(musicSource)) yield break;
+
         float startVolume = musicSource.volume;
         float elapsed = 0f;
 
         while (elapsed < fadeTime)
         {
             elapsed += Time.unscaledDeltaTime;
-            musicSource.volume = Mathf.Lerp(startVolume, 0f, elapsed / fadeTime);
+            if (IsAudioSourceValid(musicSource))
+                musicSource.volume = Mathf.Lerp(startVolume, 0f, elapsed / fadeTime);
             yield return null;
         }
 
-        musicSource.Stop();
-        musicSource.volume = 0f;
+        if (IsAudioSourceValid(musicSource))
+        {
+            musicSource.Stop();
+            musicSource.volume = 0f;
+        }
     }
     #endregion
 
     #region SFX SYSTEM
     public void PlaySFX(AudioClip clip, float volumeScale = 1f)
     {
-        // ✅ CORREGIDO: Verificar validez
         if (clip != null && IsAudioSourceValid(sfxSource))
         {
             float volume = SFXVolume * MasterVolume * volumeScale;
@@ -342,6 +392,7 @@ public class AudioManager : MonoBehaviour
     {
         if (currentBreathingState == state) return;
         currentBreathingState = state;
+
         if (breathingCoroutine != null) StopCoroutine(breathingCoroutine);
 
         AudioClip targetClip = state switch
@@ -360,15 +411,14 @@ public class AudioManager : MonoBehaviour
 
     private IEnumerator TransitionBreathing(AudioClip newClip)
     {
-        // ✅ CORREGIDO: Verificar validez del AudioSource
         if (!IsAudioSourceValid(breathingSource))
         {
-            Debug.LogWarning("[AudioManager] BreathingSource no válido, saltando transición");
+            Debug.LogWarning("[AudioManager] BreathingSource no válido");
             yield break;
         }
 
         // Fade out
-        while (breathingSource != null && breathingSource.volume > 0)
+        while (IsAudioSourceValid(breathingSource) && breathingSource.volume > 0)
         {
             breathingSource.volume -= Time.deltaTime * breathingFadeSpeed;
             yield return null;
@@ -385,7 +435,7 @@ public class AudioManager : MonoBehaviour
 
             float targetVolume = SFXVolume * MasterVolume * 0.7f;
 
-            while (breathingSource != null && breathingSource.volume < targetVolume)
+            while (IsAudioSourceValid(breathingSource) && breathingSource.volume < targetVolume)
             {
                 breathingSource.volume += Time.deltaTime * breathingFadeSpeed;
                 yield return null;
@@ -394,6 +444,22 @@ public class AudioManager : MonoBehaviour
             if (IsAudioSourceValid(breathingSource))
                 breathingSource.volume = targetVolume;
         }
+    }
+
+    public void StopBreathing()
+    {
+        if (breathingCoroutine != null)
+        {
+            StopCoroutine(breathingCoroutine);
+            breathingCoroutine = null;
+        }
+
+        if (IsAudioSourceValid(breathingSource))
+        {
+            breathingSource.Stop();
+        }
+
+        currentBreathingState = BreathingState.Normal;
     }
 
     public BreathingState GetCurrentBreathingState() => currentBreathingState;
@@ -419,9 +485,40 @@ public class AudioManager : MonoBehaviour
     {
         while (true)
         {
-            if (heartbeatSound != null) PlaySFX(heartbeatSound, intensity);
+            if (heartbeatSound != null)
+                PlaySFX(heartbeatSound, intensity);
             float delay = Mathf.Lerp(1.2f, 0.4f, intensity);
             yield return new WaitForSeconds(delay);
+        }
+    }
+    #endregion
+
+    #region AMBIENT SYSTEM
+    public void PlayAmbient(AudioClip clip, float volume = 0.5f)
+    {
+        if (!IsAudioSourceValid(ambientSource)) return;
+
+        ambientSource.clip = clip;
+        ambientSource.volume = volume * SFXVolume * MasterVolume;
+        ambientSource.loop = true;
+
+        if (clip != null)
+            ambientSource.Play();
+    }
+
+    public void StopAmbient()
+    {
+        if (IsAudioSourceValid(ambientSource))
+        {
+            ambientSource.Stop();
+        }
+    }
+
+    public void SetAmbientVolume(float volume)
+    {
+        if (IsAudioSourceValid(ambientSource))
+        {
+            ambientSource.volume = volume * SFXVolume * MasterVolume;
         }
     }
     #endregion
