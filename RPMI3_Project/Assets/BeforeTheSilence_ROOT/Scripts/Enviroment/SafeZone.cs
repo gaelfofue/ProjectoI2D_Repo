@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 
-/// Zona donde el jugador puede esconderse.
 public class SafeZone : MonoBehaviour
 {
     [Header("Zone Settings")]
@@ -12,32 +11,48 @@ public class SafeZone : MonoBehaviour
     [SerializeField] private Color zoneColor = new Color(0, 0, 0.5f, 0.3f);
     [SerializeField] private bool showZoneVisual = true;
 
+    [Header("Interaction Prompt")]
+    [SerializeField] private bool showInteractionPrompt = true;
+    [SerializeField] private string promptText = "E";
+    [SerializeField] private Vector3 promptOffset = new Vector3(0f, 1.5f, 0f);
+
     [Header("Effects")]
     [SerializeField] private ParticleSystem enterParticles;
     [SerializeField] private ParticleSystem hideParticles;
 
     private SpriteRenderer zoneRenderer;
     private PlayerController currentPlayer;
+    private InteractionPrompt interactionPrompt;
 
     private void Start()
     {
-        // Configurar visual
+        // Visual de la zona
         if (showZoneVisual)
         {
             zoneRenderer = GetComponent<SpriteRenderer>();
             if (zoneRenderer == null)
-            {
                 zoneRenderer = gameObject.AddComponent<SpriteRenderer>();
-            }
             zoneRenderer.color = zoneColor;
         }
 
-        // Asegurar que tenga un collider trigger
+        // Asegurar que es trigger
         Collider2D col = GetComponent<Collider2D>();
-        if (col != null)
+        if (col != null) col.isTrigger = true;
+
+        // Crear prompt de interacción
+        if (showInteractionPrompt)
         {
-            col.isTrigger = true;
+            CreateInteractionPrompt();
         }
+    }
+
+    private void CreateInteractionPrompt()
+    {
+        // Añadir componente InteractionPrompt
+        interactionPrompt = gameObject.AddComponent<InteractionPrompt>();
+
+        // Configurar via reflection o crear un método de setup
+        // Por ahora usamos los valores por defecto del script
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -49,17 +64,11 @@ public class SafeZone : MonoBehaviour
 
         Debug.Log($"Jugador entró a Safe Zone: {gameObject.name}");
 
-        // Efectos
         if (enterParticles != null)
-        {
             Instantiate(enterParticles, other.transform.position, Quaternion.identity);
-        }
 
-        // Auto-esconder
         if (autoHideOnEnter)
-        {
             Invoke(nameof(AutoHidePlayer), autoHideDelay);
-        }
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -75,43 +84,36 @@ public class SafeZone : MonoBehaviour
     private void AutoHidePlayer()
     {
         if (currentPlayer != null && !currentPlayer.IsDead && !currentPlayer.IsHidden)
-        {
-            // Simular input de esconderse
-            // Nota: El PlayerController manejará esto a través de su propio sistema
             Debug.Log("Auto-escondiendo jugador...");
-        }
     }
 
-    
-    /// Retorna el riesgo de descubrimiento de esta zona específica.
-    /// Usado por enemigos para decidir si revisar.
     public float GetDiscoveryRisk(Vector3 enemyPosition)
     {
         float distance = Vector3.Distance(transform.position, enemyPosition);
         float zoneSize = Mathf.Max(transform.localScale.x, transform.localScale.y);
-
         if (distance <= zoneSize * 2f)
         {
-            // Más cerca = más riesgo
             float proximityFactor = 1f - (distance / (zoneSize * 2f));
             return discoveryRisk * (1f + proximityFactor);
         }
-
         return 0f;
     }
 
-    /// Verifica si el jugador está en esta zona.
-    public bool HasPlayer()
-    {
-        return currentPlayer != null && currentPlayer.IsInSafeZone;
-    }
+    public bool HasPlayer() => currentPlayer != null && currentPlayer.IsInSafeZone;
 
     private void OnDrawGizmos()
     {
         Gizmos.color = new Color(0, 0, 1, 0.3f);
         Gizmos.DrawCube(transform.position, transform.localScale);
-
         Gizmos.color = Color.blue;
         Gizmos.DrawWireCube(transform.position, transform.localScale);
+
+        // Mostrar donde aparecerá el prompt
+        if (showInteractionPrompt)
+        {
+            Gizmos.color = Color.green;
+            Vector3 promptPos = transform.position + promptOffset;
+            Gizmos.DrawWireSphere(promptPos, 0.2f);
+        }
     }
 }
