@@ -2,7 +2,10 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Events;
+
+/// <summary>
 /// Controlador completo del jugador con sistemas de stamina, miedo y escondite.
+/// </summary>
 public class PlayerController : MonoBehaviour
 {
     #region VARIABLES
@@ -76,6 +79,9 @@ public class PlayerController : MonoBehaviour
     private bool wasNervous = false;
     private int originalLayer;
     private BreathingState lastBreathingState = BreathingState.Normal;
+
+    // ✅ NUEVO: Referencia cacheada al VignetteController
+    private VignetteController vignetteController;
     #endregion
 
     #region PROPERTIES
@@ -124,6 +130,9 @@ public class PlayerController : MonoBehaviour
                 originalLayer = layer;
             }
         }
+
+        // ✅ NUEVO: Buscar VignetteController
+        FindVignetteController();
     }
 
     private void Update()
@@ -143,6 +152,88 @@ public class PlayerController : MonoBehaviour
         if (isDead) return;
 
         ApplyMovement();
+    }
+    #endregion
+
+    #region VIGNETTE INTEGRATION
+    /// <summary>
+    /// Busca y cachea la referencia al VignetteController
+    /// </summary>
+    private void FindVignetteController()
+    {
+        if (vignetteController == null)
+        {
+            vignetteController = FindFirstObjectByType<VignetteController>();
+
+            if (vignetteController != null)
+            {
+                Debug.Log("[PlayerController] VignetteController encontrado");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Ejecuta un flash de pánico en el VignetteController
+    /// </summary>
+    private void TriggerPanicFlash()
+    {
+        if (vignetteController == null)
+        {
+            FindVignetteController();
+        }
+
+        if (vignetteController != null)
+        {
+            vignetteController.PanicFlash();
+        }
+    }
+
+    /// <summary>
+    /// Ejecuta un flash de descubrimiento en el VignetteController
+    /// </summary>
+    private void TriggerDiscoveryFlash()
+    {
+        if (vignetteController == null)
+        {
+            FindVignetteController();
+        }
+
+        if (vignetteController != null)
+        {
+            vignetteController.DiscoveryFlash();
+        }
+    }
+
+    /// <summary>
+    /// Ejecuta un flash de muerte en el VignetteController
+    /// </summary>
+    private void TriggerDeathFlash()
+    {
+        if (vignetteController == null)
+        {
+            FindVignetteController();
+        }
+
+        if (vignetteController != null)
+        {
+            vignetteController.DeathFlash();
+        }
+    }
+
+    /// <summary>
+    /// Ejecuta un flash de daño en el VignetteController
+    /// </summary>
+    private void TriggerDamageFlash()
+    {
+        if (vignetteController == null)
+        {
+            FindVignetteController();
+        }
+
+        if (vignetteController != null)
+        {
+            vignetteController.DamageFlash();
+        }
     }
     #endregion
 
@@ -294,6 +385,9 @@ public class PlayerController : MonoBehaviour
         Debug.Log("¡La niña no aguanta más la oscuridad!");
 
         OnPanic?.Invoke();
+
+        // ✅ NUEVO: Flash visual de pánico
+        TriggerPanicFlash();
 
         // Forzar salir del escondite
         ForceUnhide();
@@ -584,15 +678,22 @@ public class PlayerController : MonoBehaviour
     #region DEATH SYSTEM
     public void TakeDamage()
     {
+        // ✅ NUEVO: Flash visual de daño
+        TriggerDamageFlash();
+
         Die("Un enemigo te atacó");
     }
 
     public void GetDiscovered()
     {
+        // ✅ NUEVO: Flash visual de descubrimiento
+        TriggerDiscoveryFlash();
+
         if (GameData.instance != null)
         {
             GameData.instance.RegisterDiscovered();
         }
+
         Die("Te descubrieron en tu escondite");
     }
 
@@ -601,6 +702,9 @@ public class PlayerController : MonoBehaviour
         if (isDead) return;
 
         isDead = true;
+
+        // ✅ NUEVO: Flash visual de muerte
+        TriggerDeathFlash();
 
         // Detener movimiento
         rb.linearVelocity = Vector2.zero;
