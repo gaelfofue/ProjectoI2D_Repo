@@ -3788,7 +3788,7 @@ MonoBehaviour:
   hideSound: {fileID: 0}
   unhideSound: {fileID: 0}
   footstepSound: {fileID: 0}
-  heartbeatSound: {fileID: 0}
+  heartbeatSound: {fileID: 8300000, guid: edf73d759d8ac704f80b8064128b0719, type: 3}
   discoveredSound: {fileID: 0}
   deathSound: {fileID: 0}
   musicFadeSpeed: 1

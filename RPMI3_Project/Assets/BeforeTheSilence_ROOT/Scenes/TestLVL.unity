@@ -4883,6 +4883,9 @@ MonoBehaviour:
   discoveryRisk: 0.2
   zoneColor: {r: 0.08235294, g: 0.08235294, b: 0.08235294, a: 0.3}
   showZoneVisual: 1
+  showInteractionPrompt: 1
+  promptText: E
+  promptOffset: {x: 0, y: 1.5, z: 0}
   enterParticles: {fileID: 0}
   hideParticles: {fileID: 0}
 --- !u!212 &1369486858
