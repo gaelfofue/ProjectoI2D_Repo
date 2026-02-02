@@ -9,12 +9,11 @@ public class SafeZone : MonoBehaviour
 
     [Header("Visual Settings")]
     [SerializeField] private Color zoneColor = new Color(0, 0, 0.5f, 0.3f);
-    [SerializeField] private bool showZoneVisual = true;
+    [SerializeField] private bool showZoneVisual = false;
 
     [Header("Interaction Prompt")]
-    [SerializeField] private bool showInteractionPrompt = true;
-    [SerializeField] private string promptText = "E";
-    [SerializeField] private Vector3 promptOffset = new Vector3(0f, 1.5f, 0f);
+    [Tooltip("Arrastra aquí el InteractionPrompt si quieres uno. Si está vacío, no se mostrará prompt.")]
+    [SerializeField] private InteractionPrompt interactionPrompt;
 
     [Header("Effects")]
     [SerializeField] private ParticleSystem enterParticles;
@@ -22,7 +21,6 @@ public class SafeZone : MonoBehaviour
 
     private SpriteRenderer zoneRenderer;
     private PlayerController currentPlayer;
-    private InteractionPrompt interactionPrompt;
 
     private void Start()
     {
@@ -39,20 +37,11 @@ public class SafeZone : MonoBehaviour
         Collider2D col = GetComponent<Collider2D>();
         if (col != null) col.isTrigger = true;
 
-        // Crear prompt de interacción
-        if (showInteractionPrompt)
+        // Buscar InteractionPrompt si no está asignado
+        if (interactionPrompt == null)
         {
-            CreateInteractionPrompt();
+            interactionPrompt = GetComponent<InteractionPrompt>();
         }
-    }
-
-    private void CreateInteractionPrompt()
-    {
-        // Añadir componente InteractionPrompt
-        interactionPrompt = gameObject.AddComponent<InteractionPrompt>();
-
-        // Configurar via reflection o crear un método de setup
-        // Por ahora usamos los valores por defecto del script
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -101,19 +90,16 @@ public class SafeZone : MonoBehaviour
 
     public bool HasPlayer() => currentPlayer != null && currentPlayer.IsInSafeZone;
 
+    /// <summary>
+    /// Obtener referencia al InteractionPrompt (para uso externo)
+    /// </summary>
+    public InteractionPrompt GetInteractionPrompt() => interactionPrompt;
+
     private void OnDrawGizmos()
     {
         Gizmos.color = new Color(0, 0, 1, 0.3f);
         Gizmos.DrawCube(transform.position, transform.localScale);
         Gizmos.color = Color.blue;
         Gizmos.DrawWireCube(transform.position, transform.localScale);
-
-        // Mostrar donde aparecerá el prompt
-        if (showInteractionPrompt)
-        {
-            Gizmos.color = Color.green;
-            Vector3 promptPos = transform.position + promptOffset;
-            Gizmos.DrawWireSphere(promptPos, 0.2f);
-        }
     }
 }
