@@ -7410,6 +7410,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 5205673034204120723, guid: bc6d837d91e667147a257890267bbf26, type: 3}
+      propertyPath: m_SortingOrder
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 6274004668812647913, guid: bc6d837d91e667147a257890267bbf26, type: 3}
       propertyPath: indicatorSprite
       value: 

@@ -988,8 +988,8 @@ ScriptedImporter:
     - name: PataDelante
       guid: e2a9954e1bf614f4ca3e9ba47f1409d9
       position: {x: 164.7605, y: 0.00016841896, z: 0}
-      rotation: {x: 0, y: 0, z: -0.098037854, w: 0.99518275}
-      length: 132.16048
+      rotation: {x: 0, y: 0, z: -0.11138086, w: 0.9937779}
+      length: 131.90704
       parentId: 1
       color:
         serializedVersion: 2
@@ -2811,8 +2811,8 @@ ScriptedImporter:
     - name: PataDetras
       guid: d7ddef971fef1484789873e523f8bf9b
       position: {x: 169.70982, y: 0.000074772805, z: 0}
-      rotation: {x: 0, y: 0, z: -0.11699155, w: 0.9931329}
-      length: 126.143265
+      rotation: {x: 0, y: 0, z: -0.13835397, w: 0.9903829}
+      length: 127.26822
       parentId: 1
       color:
         serializedVersion: 2
@@ -4679,36 +4679,36 @@ ScriptedImporter:
     spriteBone:
     - name: ManoTrasero
       guid: dc25cf5480124c345a82dd15d79d1f3b
-      position: {x: 77.20416, y: 0.0002948943, z: 0}
-      rotation: {x: 0, y: 0, z: -0.061276082, w: 0.99812084}
-      length: 40.35793
+      position: {x: 77.20419, y: 0.000030175057, z: 0}
+      rotation: {x: 0, y: 0, z: -0.061276093, w: 0.9981209}
+      length: 40.357933
       parentId: 2
       color:
         serializedVersion: 2
         rgba: 4278255488
     - name: ManoTrasero
       guid: c1ba92a9c7d59d849bec7d29f5a31c09
-      position: {x: 11.494153, y: 15.096683, z: 0}
-      rotation: {x: 0, y: 0, z: 0.31057647, w: 0.95054835}
-      length: 18.726414
+      position: {x: 11.494202, y: 15.096722, z: 0}
+      rotation: {x: 0, y: 0, z: 0.3105765, w: 0.95054847}
+      length: 18.726416
       parentId: 0
       color:
         serializedVersion: 2
         rgba: 4286643968
     - name: AntebrazoTrasero
       guid: 100bfa03c73a70f40bd3fb192ac046ad
-      position: {x: 152.34262, y: -0.000016281856, z: 0}
-      rotation: {x: 0, y: 0, z: -0.0117771365, w: 0.9999306}
-      length: 77.20413
+      position: {x: 152.34267, y: 0.00006052755, z: 0}
+      rotation: {x: 0, y: 0, z: -0.011777053, w: 0.9999306}
+      length: 77.204124
       parentId: 3
       color:
         serializedVersion: 2
         rgba: 4278190335
     - name: HombroTrasero
       guid: faeea1df89117ff429ab94ed83b330d3
-      position: {x: 16.099487, y: 268.6114, z: 0}
-      rotation: {x: 0, y: 0, z: -0.6024063, w: 0.7981897}
-      length: 152.34268
+      position: {x: 16.098938, y: 268.61145, z: 0}
+      rotation: {x: 0, y: 0, z: -0.6024059, w: 0.79819}
+      length: 152.34267
       parentId: -1
       color:
         serializedVersion: 2
@@ -5866,17 +5866,17 @@ ScriptedImporter:
     spriteBone:
     - name: ManoDelante
       guid: e41622ec20fd2c94ba1107b28029f2ee
-      position: {x: 75.096695, y: -0.00012829284, z: 0}
-      rotation: {x: 0, y: 0, z: -0.053148855, w: 0.99858665}
-      length: 42.551575
+      position: {x: 75.09668, y: -0.00020176028, z: 0}
+      rotation: {x: 0, y: 0, z: -0.05314889, w: 0.99858665}
+      length: 42.551563
       parentId: 2
       color:
         serializedVersion: 2
         rgba: 4294967040
     - name: PulgarDelante
       guid: a994c1062fa679e4bad15fe1ed3a1ae7
-      position: {x: 7.6834497, y: 11.44043, z: 0}
-      rotation: {x: 0, y: 0, z: 0.33839682, w: 0.94100356}
+      position: {x: 7.683434, y: 11.440432, z: 0}
+      rotation: {x: 0, y: 0, z: 0.33839673, w: 0.9410035}
       length: 19.511726
       parentId: 0
       color:
@@ -5884,7 +5884,7 @@ ScriptedImporter:
         rgba: 4294901760
     - name: AntebrazoDelante
       guid: 9a30832ae0bfd11499b33aacc3ea667a
-      position: {x: 158.73921, y: 0.000051259285, z: 0}
+      position: {x: 158.73906, y: -0.0000019426589, z: 0}
       rotation: {x: 0, y: 0, z: 0.00045673625, w: 0.99999994}
       length: 75.09668
       parentId: 3
@@ -5893,9 +5893,9 @@ ScriptedImporter:
         rgba: 4278255360
     - name: HombroDelante
       guid: b25e0739d6daa214ba7c70e1530121fa
-      position: {x: 67.84564, y: 278.71796, z: 0}
-      rotation: {x: 0, y: 0, z: 0.7644237, w: -0.6447142}
-      length: 158.73921
+      position: {x: 67.84509, y: 278.71783, z: 0}
+      rotation: {x: 0, y: 0, z: 0.7644234, w: -0.6447146}
+      length: 158.73912
       parentId: -1
       color:
         serializedVersion: 2
@@ -7045,35 +7045,35 @@ ScriptedImporter:
     spriteBone:
     - name: "Mo\xF1o2<"
       guid: b73059ed64b54684c8023840276323dc
-      position: {x: 66.05657, y: 0.00003493535, z: 0}
-      rotation: {x: 0, y: 0, z: -0.571343, w: 0.8207114}
-      length: 111.72821
+      position: {x: 66.056526, y: 0.000076412456, z: 0}
+      rotation: {x: 0, y: 0, z: -0.57134306, w: 0.8207114}
+      length: 111.728226
       parentId: 3
       color:
         serializedVersion: 2
         rgba: 4278255615
     - name: "Mo\xF1o2>"
       guid: 6f2f75786943a5343beb93641df5040e
-      position: {x: 62.297295, y: 0.00010329413, z: 0}
-      rotation: {x: 0, y: 0, z: 0.4411071, w: 0.8974545}
-      length: 104.9759
+      position: {x: 62.29735, y: -0.000034865232, z: 0}
+      rotation: {x: 0, y: 0, z: 0.44110718, w: 0.89745444}
+      length: 104.97588
       parentId: 2
       color:
         serializedVersion: 2
         rgba: 4294934528
     - name: "Mo\xF1o>"
       guid: 423fab3e98e35a44090d2243f0f206d0
-      position: {x: 115.20776, y: 170.7641, z: 0}
-      rotation: {x: 0, y: 0, z: 0.8855083, w: -0.46462366}
-      length: 62.297348
+      position: {x: 115.20813, y: 170.76416, z: 0}
+      rotation: {x: 0, y: 0, z: 0.8855081, w: -0.46462408}
+      length: 62.297386
       parentId: -1
       color:
         serializedVersion: 2
         rgba: 4278255360
     - name: "Mo\xF1o<"
       guid: e0b8ca1240af0ac4e9293f1636237b96
-      position: {x: 21.649353, y: 160.41974, z: 0}
-      rotation: {x: 0, y: 0, z: -0.33203232, w: 0.943268}
+      position: {x: 21.649658, y: 160.41968, z: 0}
+      rotation: {x: 0, y: 0, z: -0.33203173, w: 0.94326824}
       length: 66.05658
       parentId: -1
       color:
@@ -8713,17 +8713,17 @@ ScriptedImporter:
     - name: TorsoAlto
       guid: 1575df7daf1a06b4a8a645d90af5118a
       position: {x: 99.39559, y: -0.000015480524, z: 0}
-      rotation: {x: 0, y: 0, z: 0.055820175, w: 0.99844086}
-      length: 90.80622
+      rotation: {x: 0, y: 0, z: 0.055820722, w: 0.9984408}
+      length: 90.80625
       parentId: 1
       color:
         serializedVersion: 2
         rgba: 4294934528
     - name: Cuello
       guid: 1d0e9e0405f487b4c9fd98094662e7e4
-      position: {x: 90.80623, y: 0.000103119455, z: 0}
-      rotation: {x: 0, y: 0, z: -0.02762556, w: 0.9996184}
-      length: 52.325924
+      position: {x: 90.806244, y: 0.00001232447, z: 0}
+      rotation: {x: 0, y: 0, z: -0.02762611, w: 0.9996184}
+      length: 52.32592
       parentId: 2
       color:
         serializedVersion: 2
@@ -9513,8 +9513,8 @@ ScriptedImporter:
     - name: Cabeza
       guid: 9e40f538a95c0304c823b94e0e7b9e71
       position: {x: 116.52936, y: 10.508026, z: 0}
-      rotation: {x: 0, y: 0, z: 0.7592171, w: 0.6508374}
-      length: 201.53772
+      rotation: {x: 0, y: 0, z: 0.75921714, w: 0.6508375}
+      length: 201.53766
       parentId: -1
       color:
         serializedVersion: 2
@@ -10156,8 +10156,8 @@ ScriptedImporter:
     spriteBone:
     - name: Mechon9
       guid: 7c16a9c3a66d99342a7d57d3544919b6
-      position: {x: 139.27394, y: -57.212482, z: 0}
-      rotation: {x: 0, y: 0, z: -0.76528496, w: 0.6436916}
+      position: {x: 139.27391, y: -57.212494, z: 0}
+      rotation: {x: 0, y: 0, z: -0.76528496, w: 0.6436918}
       length: 138.54578
       parentId: 4
       color:
@@ -10165,44 +10165,44 @@ ScriptedImporter:
         rgba: 4278223103
     - name: Mechon8
       guid: 169bc81659883184aac83295af055be5
-      position: {x: 159.17154, y: -93.573555, z: 0}
-      rotation: {x: 0, y: 0, z: -0.77473176, w: 0.63229007}
-      length: 88.769806
+      position: {x: 159.17155, y: -93.57358, z: 0}
+      rotation: {x: 0, y: 0, z: -0.77473176, w: 0.6322902}
+      length: 88.7698
       parentId: 4
       color:
         serializedVersion: 2
         rgba: 4278255488
     - name: Mechon7
       guid: 8b8782ee3df08504db9c72e76acaae26
-      position: {x: 136.57198, y: 11.285707, z: 0}
+      position: {x: 136.57198, y: 11.285701, z: 0}
       rotation: {x: 0, y: 0, z: -0.51464665, w: 0.85740244}
-      length: 110.38905
+      length: 110.389046
       parentId: 4
       color:
         serializedVersion: 2
         rgba: 4286578943
     - name: Mechon6
       guid: a3de0ac5981f8c442ba6b2c3884baad8
-      position: {x: 133.13313, y: 33.41109, z: 0}
-      rotation: {x: 0, y: 0, z: -0.22963303, w: 0.97327733}
-      length: 56.513275
+      position: {x: 133.13313, y: 33.411083, z: 0}
+      rotation: {x: 0, y: 0, z: -0.22963302, w: 0.97327733}
+      length: 56.51327
       parentId: 4
       color:
         serializedVersion: 2
         rgba: 4294901888
     - name: CabelloDelante
       guid: 489523ec3ca9caf4c9b49f2100b8aaf7
-      position: {x: 123.83307, y: 172.35815, z: 0}
-      rotation: {x: 0, y: 0, z: 0.12001003, w: 0.99277276}
-      length: 123.80852
+      position: {x: 123.833084, y: 172.35815, z: 0}
+      rotation: {x: 0, y: 0, z: 0.12001002, w: 0.9927727}
+      length: 123.808525
       parentId: -1
       color:
         serializedVersion: 2
         rgba: 4294901760
     - name: "Mo\xF1o1"
       guid: 3d96260c832a36246911ed27a103e6d6
-      position: {x: 8.947825, y: 26.099396, z: 0}
-      rotation: {x: 0, y: 0, z: 0.54835147, w: 0.836248}
+      position: {x: 8.947816, y: 26.099384, z: 0}
+      rotation: {x: 0, y: 0, z: 0.54835147, w: 0.83624804}
       length: 37.72761
       parentId: 4
       color:
@@ -10210,63 +10210,63 @@ ScriptedImporter:
         rgba: 4294967040
     - name: "Mo\xF1o1_2"
       guid: c9b1dd06285df054e98fe311f5b0d997
-      position: {x: 37.727608, y: -0.0000029991315, z: 0}
-      rotation: {x: 0, y: 0, z: 0.62310696, w: 0.7821367}
-      length: 29.684734
+      position: {x: 37.72762, y: 0.00000036459642, z: 0}
+      rotation: {x: 0, y: 0, z: 0.62310684, w: 0.7821367}
+      length: 29.68474
       parentId: 5
       color:
         serializedVersion: 2
         rgba: 4294901760
     - name: "Mo\xF1o2"
       guid: 1af196897f39f8949b102996762c2d02
-      position: {x: -31.137817, y: 17.586676, z: 0}
-      rotation: {x: 0, y: 0, z: 0.9909298, w: 0.13438116}
-      length: 74.23405
+      position: {x: -31.137827, y: 17.586662, z: 0}
+      rotation: {x: 0, y: 0, z: 0.9909297, w: 0.13438113}
+      length: 74.23407
       parentId: 4
       color:
         serializedVersion: 2
         rgba: 4294902015
     - name: Mechon1
       guid: c43c18458ec8fae40a3cc6272a04abbf
-      position: {x: -67.07533, y: 1.7173619, z: 0}
-      rotation: {x: 0, y: 0, z: -0.8812386, w: 0.4726717}
-      length: 58.474213
+      position: {x: -67.07534, y: 1.7173468, z: 0}
+      rotation: {x: 0, y: 0, z: -0.88123864, w: 0.47267172}
+      length: 58.474197
       parentId: 4
       color:
         serializedVersion: 2
         rgba: 4294902015
     - name: Mechon2
       guid: 02d23053f20b5e4419881393251727bd
-      position: {x: -61.000637, y: -17.649143, z: 0}
+      position: {x: -61.000645, y: -17.649158, z: 0}
       rotation: {x: 0, y: 0, z: -0.79865134, w: 0.60179406}
-      length: 107.42591
+      length: 107.4259
       parentId: 4
       color:
         serializedVersion: 2
         rgba: 4278190335
     - name: Mechon3
       guid: edad72eaf5f4ba2489b6504237657b81
-      position: {x: -50.146313, y: -58.582054, z: 0}
-      rotation: {x: 0, y: 0, z: -0.6929326, w: 0.7210024}
-      length: 83.96962
+      position: {x: -50.14632, y: -58.582066, z: 0}
+      rotation: {x: 0, y: 0, z: -0.6929326, w: 0.72100246}
+      length: 83.969604
       parentId: 4
       color:
         serializedVersion: 2
         rgba: 4278255615
     - name: Mechon4
       guid: b298da39b93fc534fa3b0858ffad6f2d
-      position: {x: -19.967916, y: -56.67077, z: 0}
+      position: {x: -19.967922, y: -56.67078, z: 0}
       rotation: {x: 0, y: 0, z: -0.6794596, w: 0.7337131}
-      length: 87.764565
+      length: 87.76457
       parentId: 4
       color:
         serializedVersion: 2
         rgba: 4286643968
     - name: Mechon5
       guid: 05d24633bc6ffb54fa973e6935920763
-      position: {x: 68.14569, y: -12.576451, z: 0}
+      position: {x: 68.14568, y: -12.576459, z: 0}
       rotation: {x: 0, y: 0, z: -0.80849147, w: 0.58850783}
-      length: 37.50849
+      length: 37.508488
       parentId: 4
       color:
         serializedVersion: 2
@@ -12358,7 +12358,7 @@ ScriptedImporter:
       guid: 5f1cf2a818175354ca207248303afe9d
       position: {x: 199.97571, y: 213.7909, z: 0}
       rotation: {x: 0, y: 0, z: -0.5791118, w: 0.8152482}
-      length: 201.93547
+      length: 201.93546
       parentId: -1
       color:
         serializedVersion: 2
@@ -12366,8 +12366,8 @@ ScriptedImporter:
     - name: PeloDetras-
       guid: 5408109c813378549b65ee8dc8d70108
       position: {x: 151.62, y: 209.94443, z: 0}
-      rotation: {x: 0, y: 0, z: 0.6954566, w: -0.7185681}
-      length: 201.77315
+      rotation: {x: 0, y: 0, z: 0.6954567, w: -0.71856815}
+      length: 201.77307
       parentId: -1
       color:
         serializedVersion: 2
@@ -12393,8 +12393,8 @@ ScriptedImporter:
     - name: MechonDetras<
       guid: 58e9020ac65717d42869aa5fd51d5b51
       position: {x: 167.0017, y: -27.583178, z: 0}
-      rotation: {x: 0, y: 0, z: -0.26006317, w: 0.9655916}
-      length: 47.894672
+      rotation: {x: 0, y: 0, z: -0.2600632, w: 0.96559167}
+      length: 47.89467
       parentId: 3
       color:
         serializedVersion: 2
@@ -13456,8 +13456,8 @@ ScriptedImporter:
     - name: PataDelante
       guid: e2a9954e1bf614f4ca3e9ba47f1409d9
       position: {x: 164.76051, y: 0.000052470466, z: 0}
-      rotation: {x: 0, y: 0, z: -0.09803788, w: 0.99518275}
-      length: 132.16043
+      rotation: {x: 0, y: 0, z: -0.11138086, w: 0.9937778}
+      length: 131.90703
       parentId: 1
       color:
         serializedVersion: 2
@@ -13474,8 +13474,8 @@ ScriptedImporter:
     - name: PataDetras
       guid: d7ddef971fef1484789873e523f8bf9b
       position: {x: 169.70978, y: 0.000077489545, z: 0}
-      rotation: {x: 0, y: 0, z: -0.11699156, w: 0.99313295}
-      length: 126.14327
+      rotation: {x: 0, y: 0, z: -0.13835399, w: 0.99038285}
+      length: 127.268234
       parentId: 3
       color:
         serializedVersion: 2
@@ -13519,16 +13519,16 @@ ScriptedImporter:
     - name: TorsoAlto
       guid: 1575df7daf1a06b4a8a645d90af5118a
       position: {x: 99.3956, y: -0.00001963148, z: 0}
-      rotation: {x: 0, y: 0, z: 0.055820182, w: 0.99844086}
-      length: 90.80622
+      rotation: {x: 0, y: 0, z: 0.055820715, w: 0.9984408}
+      length: 90.806244
       parentId: 8
       color:
         serializedVersion: 2
         rgba: 4294934528
     - name: Cuello
       guid: 1d0e9e0405f487b4c9fd98094662e7e4
-      position: {x: 90.806244, y: 0.000084526444, z: 0}
-      rotation: {x: 0, y: 0, z: -0.027625557, w: 0.99961835}
+      position: {x: 90.80623, y: 0.00003478866, z: 0}
+      rotation: {x: 0, y: 0, z: -0.027626088, w: 0.9996184}
       length: 52.325928
       parentId: 9
       color:
@@ -13546,25 +13546,25 @@ ScriptedImporter:
     - name: HombroDelante
       guid: b25e0739d6daa214ba7c70e1530121fa
       position: {x: 501.8176, y: 51.4594, z: 0}
-      rotation: {x: 0, y: -0, z: 0.98597074, w: 0.16691826}
-      length: 158.73921
+      rotation: {x: 0, y: -0, z: 0.98597074, w: 0.16691825}
+      length: 158.73912
       parentId: 9
       color:
         serializedVersion: 2
         rgba: 4278255615
     - name: AntebrazoDelante
       guid: 9a30832ae0bfd11499b33aacc3ea667a
-      position: {x: 158.7392, y: 0.00003870719, z: 0}
+      position: {x: 158.73907, y: 0.000012096888, z: 0}
       rotation: {x: 0, y: 0, z: 0.0004567453, w: 0.99999994}
-      length: 75.09669
+      length: 75.09668
       parentId: 12
       color:
         serializedVersion: 2
         rgba: 4278255360
     - name: ManoDelante
       guid: e41622ec20fd2c94ba1107b28029f2ee
-      position: {x: 75.09667, y: -0.00010502053, z: 0}
-      rotation: {x: 0, y: 0, z: -0.053148903, w: 0.9985866}
+      position: {x: 75.09669, y: -0.0001622765, z: 0}
+      rotation: {x: 0, y: 0, z: -0.053148992, w: 0.9985866}
       length: 42.55157
       parentId: 13
       color:
@@ -13583,24 +13583,24 @@ ScriptedImporter:
       guid: faeea1df89117ff429ab94ed83b330d3
       position: {x: 462.55344, y: -152.10522, z: 0}
       rotation: {x: 0, y: -0, z: -0.9984363, w: 0.055902246}
-      length: 152.34268
+      length: 152.34267
       parentId: 9
       color:
         serializedVersion: 2
         rgba: 4294902015
     - name: AntebrazoTrasero
       guid: 100bfa03c73a70f40bd3fb192ac046ad
-      position: {x: 152.34264, y: 0.0000018854262, z: 0}
+      position: {x: 152.34268, y: 0.000004233414, z: 0}
       rotation: {x: 0, y: 0, z: -0.011777098, w: 0.9999307}
-      length: 77.20412
+      length: 77.204124
       parentId: 16
       color:
         serializedVersion: 2
         rgba: 4278190335
     - name: ManoTrasero
       guid: dc25cf5480124c345a82dd15d79d1f3b
-      position: {x: 77.20409, y: 0.00020832135, z: 0}
-      rotation: {x: 0, y: 0, z: -0.061276123, w: 0.9981209}
+      position: {x: 77.204155, y: 0.000069669295, z: 0}
+      rotation: {x: 0, y: 0, z: -0.06127601, w: 0.9981209}
       length: 40.35793
       parentId: 17
       color:
@@ -13762,16 +13762,16 @@ ScriptedImporter:
     - name: "Mo\xF1o1"
       guid: 3d96260c832a36246911ed27a103e6d6
       position: {x: 8.947826, y: 26.099413, z: 0}
-      rotation: {x: 0, y: 0, z: 0.5483515, w: 0.836248}
-      length: 37.72761
+      rotation: {x: 0, y: 0, z: 0.54835147, w: 0.836248}
+      length: 37.727615
       parentId: 26
       color:
         serializedVersion: 2
         rgba: 4294967040
     - name: "Mo\xF1o1_2"
       guid: c9b1dd06285df054e98fe311f5b0d997
-      position: {x: 37.7276, y: -0.000006945291, z: 0}
-      rotation: {x: 0, y: 0, z: 0.6231069, w: 0.7821367}
+      position: {x: 37.72757, y: -0.0000049850714, z: 0}
+      rotation: {x: 0, y: 0, z: 0.6231069, w: 0.78213674}
       length: 29.68474
       parentId: 36
       color:
@@ -13789,7 +13789,7 @@ ScriptedImporter:
     - name: "Mo\xF1o<"
       guid: e0b8ca1240af0ac4e9293f1636237b96
       position: {x: -296.08377, y: 83.87318, z: 0}
-      rotation: {x: 0, y: -0, z: -0.9344851, w: 0.35600233}
+      rotation: {x: 0, y: -0, z: -0.934485, w: 0.35600245}
       length: 66.05658
       parentId: 9
       color:
@@ -13797,8 +13797,8 @@ ScriptedImporter:
         rgba: 4278190335
     - name: "Mo\xF1o2<"
       guid: b73059ed64b54684c8023840276323dc
-      position: {x: 66.05659, y: 0.00002259071, z: 0}
-      rotation: {x: 0, y: 0, z: -0.571343, w: 0.82071143}
+      position: {x: 66.05657, y: 0.000012402796, z: 0}
+      rotation: {x: 0, y: 0, z: -0.5713431, w: 0.8207114}
       length: 111.72821
       parentId: 39
       color:
@@ -13807,21 +13807,39 @@ ScriptedImporter:
     - name: "Mo\xF1o>"
       guid: 423fab3e98e35a44090d2243f0f206d0
       position: {x: -301.33252, y: -10.108955, z: 0}
-      rotation: {x: 0, y: -0, z: 0.92674476, w: 0.3756917}
-      length: 62.297348
+      rotation: {x: 0, y: -0, z: 0.9267447, w: 0.37569177}
+      length: 62.297398
       parentId: 9
       color:
         serializedVersion: 2
         rgba: 4278255360
     - name: "Mo\xF1o2>"
       guid: 6f2f75786943a5343beb93641df5040e
-      position: {x: 62.297318, y: 0.000005066555, z: 0}
-      rotation: {x: 0, y: 0, z: 0.4411071, w: 0.8974545}
+      position: {x: 62.297394, y: -0.00001924517, z: 0}
+      rotation: {x: 0, y: 0, z: 0.44110718, w: 0.8974545}
       length: 104.9759
       parentId: 41
       color:
         serializedVersion: 2
         rgba: 4294934528
+    - name: PieDelante
+      guid: 1aee45b0e9ace7f4dbe5565e5833a33f
+      position: {x: 131.90703, y: 0.000106632695, z: 0}
+      rotation: {x: 0, y: 0, z: 0.7351399, w: 0.6779155}
+      length: 12.95531
+      parentId: 2
+      color:
+        serializedVersion: 2
+        rgba: 4294901888
+    - name: PieDelante
+      guid: 666ec591be3652d4bae63cd458880d8a
+      position: {x: 127.26822, y: -0.00003466934, z: 0}
+      rotation: {x: 0, y: -0, z: 0.73738205, w: 0.67547596}
+      length: 10.198821
+      parentId: 4
+      color:
+        serializedVersion: 2
+        rgba: 4286578943
     parts:
     - spritePosition:
         x: 1303
