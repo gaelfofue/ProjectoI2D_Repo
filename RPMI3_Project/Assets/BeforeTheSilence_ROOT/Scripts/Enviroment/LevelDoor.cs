@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 /// <summary>
 /// Puerta que transporta al jugador a un nivel específico.
@@ -43,9 +44,15 @@ public class LevelDoor : MonoBehaviour
     [SerializeField] private AudioClip doorOpenSound;
     [SerializeField] private AudioClip lockedSound;
 
-    [Header("Transition")]
-    [SerializeField] private bool useLoadingScreen = true;
-    [SerializeField] private float transitionDelay = 0.5f;
+    [Header("Transition Settings")]
+    [SerializeField] private bool useLoadingScreen = false;
+    [SerializeField] private float delayBeforeFade = 0.3f;
+    [SerializeField] private bool freezePlayerOnEnter = true;
+
+    [Header("Custom Fade (Si no hay SceneLoader)")]
+    [SerializeField] private bool useCustomFade = false;
+    [SerializeField] private float customFadeDuration = 0.5f;
+    [SerializeField] private Color fadeColor = Color.black;
 
     [Header("Debug")]
     [SerializeField] private bool debugMode = false;
@@ -58,28 +65,32 @@ public class LevelDoor : MonoBehaviour
     private InteractionPrompt interactionPrompt;
     private Vector3 originalScale;
     private float pulseTimer = 0f;
+
+    // Custom fade
+    private GameObject fadeCanvasObject;
+    private CanvasGroup fadeCanvasGroup;
+    private UnityEngine.UI.Image fadeImage;
     #endregion
 
     #region UNITY METHODS
     private void Start()
     {
-        // Guardar escala original
         originalScale = transform.localScale;
 
-        // Obtener renderer si no está asignado
         if (doorRenderer == null)
         {
             doorRenderer = GetComponent<SpriteRenderer>();
         }
 
-        // Buscar o crear InteractionPrompt
         SetupInteractionPrompt();
-
-        // Verificar si está bloqueada
         CheckLockStatus();
-
-        // Aplicar color inicial
         UpdateDoorVisual();
+
+        // Preparar fade custom si es necesario
+        if (useCustomFade || SceneLoader.Instance == null)
+        {
+            SetupCustomFade();
+        }
 
         if (debugMode)
         {
@@ -91,13 +102,11 @@ public class LevelDoor : MonoBehaviour
     {
         if (isTransitioning) return;
 
-        // Animación de pulso
         if (enablePulse && playerInRange && !isLocked)
         {
             AnimatePulse();
         }
 
-        // Detectar input de interacción
         if (playerInRange && !isLocked)
         {
             CheckInteractionInput();
@@ -114,7 +123,6 @@ public class LevelDoor : MonoBehaviour
         playerInRange = true;
         UpdateDoorVisual();
 
-        // Mostrar prompt
         if (interactionPrompt != null)
         {
             interactionPrompt.Show();
@@ -132,21 +140,21 @@ public class LevelDoor : MonoBehaviour
 
         playerInRange = false;
         player = null;
-
-        // Restaurar escala
         transform.localScale = originalScale;
-
         UpdateDoorVisual();
 
-        // Ocultar prompt
         if (interactionPrompt != null)
         {
             interactionPrompt.Hide();
         }
+    }
 
-        if (debugMode)
+    private void OnDestroy()
+    {
+        // Limpiar fade custom
+        if (fadeCanvasObject != null)
         {
-            Debug.Log($"[LevelDoor] Jugador salió del rango de '{levelDisplayName}'");
+            Destroy(fadeCanvasObject);
         }
     }
     #endregion
@@ -154,16 +162,13 @@ public class LevelDoor : MonoBehaviour
     #region SETUP
     private void SetupInteractionPrompt()
     {
-        // Buscar prompt existente
         interactionPrompt = GetComponent<InteractionPrompt>();
 
         if (interactionPrompt == null && showPrompt)
         {
-            // Crear uno básico si no existe
             interactionPrompt = gameObject.AddComponent<InteractionPrompt>();
         }
 
-        // Actualizar texto según estado
         UpdatePromptText();
     }
 
@@ -175,7 +180,6 @@ public class LevelDoor : MonoBehaviour
             return;
         }
 
-        // Verificar progreso del jugador
         int playerProgress = 1;
 
         if (GameData.instance != null)
@@ -188,11 +192,41 @@ public class LevelDoor : MonoBehaviour
         }
 
         isLocked = playerProgress < requiredLevelToUnlock;
+    }
 
-        if (debugMode)
-        {
-            Debug.Log($"[LevelDoor] '{levelDisplayName}' - Progreso: {playerProgress}, Requerido: {requiredLevelToUnlock}, Locked: {isLocked}");
-        }
+    private void SetupCustomFade()
+    {
+        // Crear canvas para fade
+        fadeCanvasObject = new GameObject("DoorFadeCanvas");
+        fadeCanvasObject.transform.SetParent(null);
+        DontDestroyOnLoad(fadeCanvasObject);
+
+        Canvas canvas = fadeCanvasObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 999;
+
+        fadeCanvasObject.AddComponent<UnityEngine.UI.CanvasScaler>();
+        fadeCanvasObject.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+
+        // Crear imagen de fade
+        GameObject imageObj = new GameObject("FadeImage");
+        imageObj.transform.SetParent(fadeCanvasObject.transform);
+
+        fadeImage = imageObj.AddComponent<UnityEngine.UI.Image>();
+        fadeImage.color = new Color(fadeColor.r, fadeColor.g, fadeColor.b, 0f);
+
+        // Stretch to fill
+        RectTransform rect = imageObj.GetComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        fadeCanvasGroup = imageObj.AddComponent<CanvasGroup>();
+        fadeCanvasGroup.alpha = 0f;
+        fadeCanvasGroup.blocksRaycasts = false;
+
+        fadeCanvasObject.SetActive(false);
     }
     #endregion
 
@@ -203,7 +237,6 @@ public class LevelDoor : MonoBehaviour
 
         if (useNewInputSystem)
         {
-            // Nuevo Input System
             if (Keyboard.current != null)
             {
                 interactPressed = Keyboard.current.eKey.wasPressedThisFrame;
@@ -211,7 +244,6 @@ public class LevelDoor : MonoBehaviour
         }
         else
         {
-            // Input System antiguo
             interactPressed = Input.GetKeyDown(interactKey);
         }
 
@@ -243,7 +275,13 @@ public class LevelDoor : MonoBehaviour
             Debug.Log($"[LevelDoor] Entrando a '{levelDisplayName}' (Escena: {levelSceneName})");
         }
 
-        // Efecto visual
+        // Congelar jugador
+        if (freezePlayerOnEnter && player != null)
+        {
+            FreezePlayer();
+        }
+
+        // Efecto visual de la puerta
         if (doorRenderer != null)
         {
             doorRenderer.color = enteringColor;
@@ -259,30 +297,141 @@ public class LevelDoor : MonoBehaviour
         if (interactionPrompt != null)
         {
             interactionPrompt.FlashConfirm();
+            interactionPrompt.Hide();
         }
 
-        // Cargar nivel después de delay
-        if (transitionDelay > 0)
-        {
-            Invoke(nameof(LoadLevel), transitionDelay);
-        }
-        else
-        {
-            LoadLevel();
-        }
+        // Iniciar transición
+        StartCoroutine(TransitionToLevel());
     }
 
-    private void LoadLevel()
+    private IEnumerator TransitionToLevel()
     {
-        // Usar SceneLoader si existe
-        if (SceneLoader.Instance != null)
+        // Delay inicial (para que se vea la animación de la puerta)
+        if (delayBeforeFade > 0)
         {
+            yield return new WaitForSeconds(delayBeforeFade);
+        }
+
+        // Verificar si hay SceneLoader
+        if (SceneLoader.Instance != null && !useCustomFade)
+        {
+            // Usar el fade del SceneLoader
+            if (debugMode)
+            {
+                Debug.Log("[LevelDoor] Usando SceneLoader para transición");
+            }
+
             SceneLoader.Instance.LoadScene(levelSceneName, useLoadingScreen);
         }
         else
         {
-            // Fallback directo
-            UnityEngine.SceneManagement.SceneManager.LoadScene(levelSceneName);
+            // Usar fade custom
+            if (debugMode)
+            {
+                Debug.Log("[LevelDoor] Usando fade custom para transición");
+            }
+
+            yield return StartCoroutine(CustomFadeAndLoad());
+        }
+    }
+
+    private IEnumerator CustomFadeAndLoad()
+    {
+        // Activar canvas
+        if (fadeCanvasObject != null)
+        {
+            fadeCanvasObject.SetActive(true);
+        }
+
+        // Fade out (pantalla se oscurece)
+        yield return StartCoroutine(CustomFadeOut());
+
+        // Cargar escena
+        AsyncOperation asyncLoad = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(levelSceneName);
+
+        if (asyncLoad == null)
+        {
+            Debug.LogError($"[LevelDoor] No se pudo cargar la escena '{levelSceneName}'");
+            isTransitioning = false;
+            yield break;
+        }
+
+        // Esperar a que cargue
+        while (!asyncLoad.isDone)
+        {
+            yield return null;
+        }
+
+        // Fade in (nueva escena aparece)
+        yield return StartCoroutine(CustomFadeIn());
+
+        // Desactivar canvas
+        if (fadeCanvasObject != null)
+        {
+            fadeCanvasObject.SetActive(false);
+        }
+    }
+
+    private IEnumerator CustomFadeOut()
+    {
+        if (fadeCanvasGroup == null) yield break;
+
+        fadeCanvasGroup.blocksRaycasts = true;
+        float elapsed = 0f;
+
+        while (elapsed < customFadeDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = elapsed / customFadeDuration;
+
+            fadeCanvasGroup.alpha = Mathf.Lerp(0f, 1f, t);
+
+            if (fadeImage != null)
+            {
+                fadeImage.color = new Color(fadeColor.r, fadeColor.g, fadeColor.b, t);
+            }
+
+            yield return null;
+        }
+
+        fadeCanvasGroup.alpha = 1f;
+    }
+
+    private IEnumerator CustomFadeIn()
+    {
+        if (fadeCanvasGroup == null) yield break;
+
+        float elapsed = 0f;
+
+        while (elapsed < customFadeDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = elapsed / customFadeDuration;
+
+            fadeCanvasGroup.alpha = Mathf.Lerp(1f, 0f, t);
+
+            if (fadeImage != null)
+            {
+                fadeImage.color = new Color(fadeColor.r, fadeColor.g, fadeColor.b, 1f - t);
+            }
+
+            yield return null;
+        }
+
+        fadeCanvasGroup.alpha = 0f;
+        fadeCanvasGroup.blocksRaycasts = false;
+    }
+
+    private void FreezePlayer()
+    {
+        if (player == null) return;
+
+        // Desactivar movimiento
+        Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.bodyType = RigidbodyType2D.Static;
         }
     }
 
@@ -293,20 +442,15 @@ public class LevelDoor : MonoBehaviour
             Debug.Log($"[LevelDoor] '{levelDisplayName}' está bloqueada. {lockedMessage}");
         }
 
-        // Sonido de bloqueado
         if (lockedSound != null && AudioManager.Instance != null)
         {
             AudioManager.Instance.PlaySFX(lockedSound);
         }
 
-        // Efecto visual de "no puedes pasar"
         StartCoroutine(LockedShakeEffect());
-
-        // Mostrar mensaje (puedes conectar esto a tu UI)
-        ShowLockedMessage();
     }
 
-    private System.Collections.IEnumerator LockedShakeEffect()
+    private IEnumerator LockedShakeEffect()
     {
         float duration = 0.3f;
         float elapsed = 0f;
@@ -315,7 +459,6 @@ public class LevelDoor : MonoBehaviour
         Vector3 originalPos = transform.position;
         Color originalColor = doorRenderer != null ? doorRenderer.color : Color.white;
 
-        // Flash rojo
         if (doorRenderer != null)
         {
             doorRenderer.color = Color.red;
@@ -335,15 +478,6 @@ public class LevelDoor : MonoBehaviour
         {
             doorRenderer.color = originalColor;
         }
-    }
-
-    private void ShowLockedMessage()
-    {
-        // Por ahora solo debug, pero puedes conectar a un sistema de UI
-        Debug.Log($"🔒 {lockedMessage}");
-
-        // TODO: Mostrar en UI
-        // UIManager.Instance?.ShowMessage(lockedMessage);
     }
     #endregion
 
@@ -374,14 +508,7 @@ public class LevelDoor : MonoBehaviour
     {
         if (interactionPrompt == null) return;
 
-        if (isLocked)
-        {
-            interactionPrompt.SetText(lockedPromptText);
-        }
-        else
-        {
-            interactionPrompt.SetText(promptText);
-        }
+        interactionPrompt.SetText(isLocked ? lockedPromptText : promptText);
     }
 
     private void AnimatePulse()
@@ -393,53 +520,28 @@ public class LevelDoor : MonoBehaviour
     #endregion
 
     #region PUBLIC METHODS
-    /// <summary>
-    /// Desbloquear la puerta
-    /// </summary>
     public void Unlock()
     {
         isLocked = false;
         UpdateDoorVisual();
         UpdatePromptText();
-
-        if (debugMode)
-        {
-            Debug.Log($"[LevelDoor] '{levelDisplayName}' desbloqueada");
-        }
     }
 
-    /// <summary>
-    /// Bloquear la puerta
-    /// </summary>
     public void Lock()
     {
         isLocked = true;
         UpdateDoorVisual();
         UpdatePromptText();
-
-        if (debugMode)
-        {
-            Debug.Log($"[LevelDoor] '{levelDisplayName}' bloqueada");
-        }
     }
 
-    /// <summary>
-    /// Verificar si está bloqueada
-    /// </summary>
     public bool IsLocked() => isLocked;
 
-    /// <summary>
-    /// Forzar entrada (ignora bloqueo)
-    /// </summary>
     public void ForceEnter()
     {
         isLocked = false;
         EnterDoor();
     }
 
-    /// <summary>
-    /// Refrescar estado de bloqueo según progreso
-    /// </summary>
     public void RefreshLockStatus()
     {
         CheckLockStatus();
@@ -451,18 +553,15 @@ public class LevelDoor : MonoBehaviour
     #region GIZMOS
     private void OnDrawGizmos()
     {
-        // Dibujar área de la puerta
         Gizmos.color = isLocked ? Color.red : Color.green;
         Gizmos.DrawWireCube(transform.position, transform.localScale);
 
-        // Icono
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position + promptOffset, 0.2f);
     }
 
     private void OnDrawGizmosSelected()
     {
-        // Mostrar nombre del nivel
 #if UNITY_EDITOR
         UnityEditor.Handles.Label(
             transform.position + Vector3.up * 2f,
