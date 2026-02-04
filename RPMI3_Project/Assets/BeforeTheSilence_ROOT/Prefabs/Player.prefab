@@ -271,19 +271,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
   rb: {fileID: 4199201549010809934}
-  rend: {fileID: 7868223595930112913}
   playerCollider: {fileID: 2360675477353752653}
   animator: {fileID: 4696034031091495024}
+  isRiggedCharacter: 1
+  mainSpriteRenderer: {fileID: 0}
   walkSpeed: 3
   runSpeed: 8
   slowSpeed: 2
-  jumpingPower: 10
+  jumpingPower: 8
   maxStamina: 100
   currentStamina: 100
   runCost: 20
-  staminaRecoveryRate: 15
-  exhaustedRecoveryRate: 5
-  exhaustedDuration: 2
+  staminaRecoveryRate: 10
+  exhaustedRecoveryRate: 2
+  exhaustedDuration: 5
   maxFearTime: 5
   currentFearTime: 0
   fearBuildupRate: 1
@@ -294,8 +295,6 @@ MonoBehaviour:
   isInSafeZone: 0
   isHidden: 0
   hideDelay: 0.5
-  hiddenColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.3}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
   playerLayerName: Player
   hiddenLayerName: Hidden
   groundCheck: {fileID: 5587885825263825856}
@@ -303,7 +302,6 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
-  deathColor: {r: 1, g: 0, b: 0, a: 1}
   OnHide:
     m_PersistentCalls:
       m_Calls: []

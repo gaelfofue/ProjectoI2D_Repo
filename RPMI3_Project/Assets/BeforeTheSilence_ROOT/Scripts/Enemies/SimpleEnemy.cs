@@ -2,15 +2,16 @@
 using System.Collections;
 using System.Collections.Generic;
 
-
-/// Enemigo con patrullaje, persecución y sistema de búsqueda en escondites.
-
+/// <summary>
+/// Enemigo con patrullaje, persecución y sistema de ataque mejorado.
+/// </summary>
 public class SimpleEnemy : MonoBehaviour
 {
     #region VARIABLES
     [Header("References")]
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private SpriteRenderer rend;
+    [SerializeField] private Collider2D attackTrigger; // Trigger separado para ataque
 
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 3f;
@@ -19,9 +20,13 @@ public class SimpleEnemy : MonoBehaviour
 
     [Header("Detection Settings")]
     [SerializeField] private float visionRange = 5f;
-    [SerializeField] private float attackRange = 1f;
+    [SerializeField] private float attackRange = 1.2f;
     [SerializeField] private float searchRange = 2f;
     [SerializeField] private float hearingRange = 3f;
+
+    [Header("Attack Settings")]
+    [SerializeField] private float attackCooldown = 1f;
+    [SerializeField] private bool useCollisionAttack = true; // Usar colisión para atacar
 
     [Header("Patrol Settings")]
     [SerializeField] private bool enablePatrol = true;
@@ -59,6 +64,10 @@ public class SimpleEnemy : MonoBehaviour
     private float lastSearchTime = 0f;
     private float searchTimer = 0f;
     private int currentSearchSpotIndex = -1;
+
+    // Attack
+    private float lastAttackTime = -999f;
+    private bool hasAttacked = false;
     #endregion
 
     #region UNITY METHODS
@@ -113,6 +122,116 @@ public class SimpleEnemy : MonoBehaviour
         }
 
         UpdateVisuals();
+        UpdateSpriteFlip();
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (!useCollisionAttack) return;
+
+        TryAttackOnCollision(collision.gameObject);
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (!useCollisionAttack) return;
+
+        TryAttackOnCollision(collision.gameObject);
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        TryAttackOnTrigger(other.gameObject);
+    }
+
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        TryAttackOnTrigger(other.gameObject);
+    }
+    #endregion
+
+    #region ATTACK SYSTEM
+    /// <summary>
+    /// Intenta atacar cuando hay colisión física
+    /// </summary>
+    private void TryAttackOnCollision(GameObject other)
+    {
+        if (!other.CompareTag("Player")) return;
+        if (playerController == null) return;
+        if (playerController.IsDead) return;
+        if (!CanAttack()) return;
+
+        Debug.Log("[SimpleEnemy] ¡Colisión con Player detectada!");
+        AttackPlayer();
+    }
+
+    /// <summary>
+    /// Intenta atacar cuando hay trigger
+    /// </summary>
+    private void TryAttackOnTrigger(GameObject other)
+    {
+        if (!other.CompareTag("Player")) return;
+        if (playerController == null)
+        {
+            playerController = other.GetComponent<PlayerController>();
+        }
+        if (playerController == null) return;
+        if (playerController.IsDead) return;
+        if (!CanAttack()) return;
+
+        Debug.Log("[SimpleEnemy] ¡Trigger con Player detectado!");
+        AttackPlayer();
+    }
+
+    /// <summary>
+    /// Verifica si el enemigo puede atacar (cooldown)
+    /// </summary>
+    private bool CanAttack()
+    {
+        return Time.time - lastAttackTime >= attackCooldown;
+    }
+
+    /// <summary>
+    /// Ejecuta el ataque al jugador
+    /// </summary>
+    private void AttackPlayer()
+    {
+        if (playerController == null) return;
+        if (playerController.IsDead) return;
+        if (!playerController.CanBeAttackedByEnemy())
+        {
+            Debug.Log("[SimpleEnemy] El jugador no puede ser atacado (está escondido)");
+            return;
+        }
+
+        lastAttackTime = Time.time;
+        hasAttacked = true;
+
+        Debug.Log("[SimpleEnemy] ¡¡¡ATACANDO AL JUGADOR!!!");
+
+        // Detener movimiento al atacar
+        rb.linearVelocity = Vector2.zero;
+
+        // Llamar al método de daño del jugador
+        playerController.TakeDamage();
+    }
+
+    /// <summary>
+    /// Verifica el ataque por distancia (backup)
+    /// </summary>
+    private void CheckDistanceAttack()
+    {
+        if (playerController == null) return;
+        if (playerController.IsDead) return;
+        if (!CanAttack()) return;
+
+        float distanceToPlayer = Vector2.Distance(transform.position, player.position);
+
+        if (distanceToPlayer <= attackRange && playerController.CanBeAttackedByEnemy())
+        {
+            Debug.Log($"[SimpleEnemy] Jugador en rango de ataque: {distanceToPlayer:F2} <= {attackRange}");
+            AttackPlayer();
+        }
     }
     #endregion
 
@@ -161,11 +280,8 @@ public class SimpleEnemy : MonoBehaviour
             Vector2 direction = ((Vector2)player.position - (Vector2)transform.position).normalized;
             rb.linearVelocity = direction * chaseSpeed;
 
-            // ¿Puede atacar?
-            if (distanceToPlayer <= attackRange)
-            {
-                AttackPlayer();
-            }
+            // Verificar ataque por distancia (backup del sistema de colisión)
+            CheckDistanceAttack();
         }
         else
         {
@@ -272,12 +388,6 @@ public class SimpleEnemy : MonoBehaviour
             Vector2 direction = ((Vector2)targetPoint.position - (Vector2)transform.position).normalized;
             rb.linearVelocity = direction * moveSpeed;
 
-            // Voltear sprite
-            if (direction.x != 0)
-            {
-                rend.flipX = direction.x < 0;
-            }
-
             if (Vector2.Distance(transform.position, targetPoint.position) < 0.5f)
             {
                 isWaiting = true;
@@ -305,9 +415,6 @@ public class SimpleEnemy : MonoBehaviour
             Vector2 direction = (patrolTarget - (Vector2)transform.position).normalized;
             rb.linearVelocity = direction * moveSpeed;
 
-            // Voltear sprite
-            rend.flipX = !movingRight;
-
             if (Vector2.Distance(transform.position, patrolTarget) < 0.5f)
             {
                 isWaiting = true;
@@ -326,18 +433,18 @@ public class SimpleEnemy : MonoBehaviour
     {
         if (playerController == null || playerController.IsDead) return false;
 
-        Debug.Log("Enemigo revisando escondite...");
+        Debug.Log("[SimpleEnemy] Enemigo revisando escondite...");
 
         bool found = playerController.CheckIfFound(transform.position, searchRange, searchIntensity);
 
         if (found)
         {
-            Debug.Log("¡Enemigo encontró al jugador!");
+            Debug.Log("[SimpleEnemy] ¡Enemigo encontró al jugador!");
             return true;
         }
         else
         {
-            Debug.Log("El enemigo no encontró nada...");
+            Debug.Log("[SimpleEnemy] El enemigo no encontró nada...");
             return false;
         }
     }
@@ -346,7 +453,6 @@ public class SimpleEnemy : MonoBehaviour
     {
         if (hidingSpotsToCheck == null || hidingSpotsToCheck.Length == 0) return;
 
-        // Elegir un escondite aleatorio
         int randomIndex = Random.Range(0, hidingSpotsToCheck.Length);
         Transform spot = hidingSpotsToCheck[randomIndex];
 
@@ -354,24 +460,14 @@ public class SimpleEnemy : MonoBehaviour
 
         float distanceToSpot = Vector2.Distance(transform.position, spot.position);
 
-        // Solo ir si está relativamente cerca
         if (distanceToSpot <= visionRange * 1.5f)
         {
             lastKnownPlayerPos = spot.position;
             currentSearchSpotIndex = randomIndex;
             ChangeState(EnemyState.Search);
 
-            Debug.Log($"Enemigo va a revisar escondite: {spot.name}");
+            Debug.Log($"[SimpleEnemy] Enemigo va a revisar escondite: {spot.name}");
         }
-    }
-
-    private void AttackPlayer()
-    {
-        if (playerController == null || playerController.IsDead) return;
-        if (!playerController.CanBeAttackedByEnemy()) return;
-
-        Debug.Log("¡Enemigo atacando!");
-        playerController.TakeDamage();
     }
     #endregion
 
@@ -380,11 +476,9 @@ public class SimpleEnemy : MonoBehaviour
     {
         if (currentState == newState) return;
 
-        // Salir del estado actual
         switch (currentState)
         {
             case EnemyState.Chase:
-                // Nada especial
                 break;
             case EnemyState.Search:
                 searchTimer = 0f;
@@ -393,21 +487,20 @@ public class SimpleEnemy : MonoBehaviour
 
         currentState = newState;
 
-        // Entrar al nuevo estado
         switch (newState)
         {
             case EnemyState.Patrol:
-                Debug.Log("Enemigo: Patrullando");
+                Debug.Log("[SimpleEnemy] Estado: Patrullando");
                 break;
             case EnemyState.Chase:
-                Debug.Log("Enemigo: ¡Persiguiendo!");
+                Debug.Log("[SimpleEnemy] Estado: ¡Persiguiendo!");
                 break;
             case EnemyState.Search:
-                Debug.Log("Enemigo: Buscando...");
+                Debug.Log("[SimpleEnemy] Estado: Buscando...");
                 searchTimer = 3f;
                 break;
             case EnemyState.Investigate:
-                Debug.Log("Enemigo: Investigando escondite");
+                Debug.Log("[SimpleEnemy] Estado: Investigando escondite");
                 break;
         }
     }
@@ -421,6 +514,11 @@ public class SimpleEnemy : MonoBehaviour
         {
             player = playerObj.transform;
             playerController = player.GetComponent<PlayerController>();
+
+            if (playerController != null)
+            {
+                Debug.Log("[SimpleEnemy] Jugador encontrado");
+            }
         }
     }
 
@@ -436,6 +534,21 @@ public class SimpleEnemy : MonoBehaviour
         };
 
         rend.color = Color.Lerp(rend.color, targetColor, Time.deltaTime * 5f);
+    }
+
+    /// <summary>
+    /// Voltea el sprite según la dirección del movimiento
+    /// </summary>
+    private void UpdateSpriteFlip()
+    {
+        if (rb.linearVelocity.x > 0.1f)
+        {
+            rend.flipX = false;
+        }
+        else if (rb.linearVelocity.x < -0.1f)
+        {
+            rend.flipX = true;
+        }
     }
     #endregion
 

@@ -5,15 +5,21 @@ using UnityEngine.Events;
 
 /// <summary>
 /// Controlador completo del jugador con sistemas de stamina, miedo, escondite y animaciones.
+/// COMPATIBLE CON PERSONAJES RIGGEADOS (PSB de Photoshop)
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
     #region VARIABLES
     [Header("Component References")]
     [SerializeField] private Rigidbody2D rb;
-    [SerializeField] private SpriteRenderer rend;
     [SerializeField] private Collider2D playerCollider;
     [SerializeField] private Animator animator;
+
+    [Header("Rigged Character Settings")]
+    [Tooltip("Marcar si el personaje usa un rig (PSB de Photoshop) en lugar de un sprite simple")]
+    [SerializeField] private bool isRiggedCharacter = true;
+    [Tooltip("Solo necesario si NO es un personaje riggeado")]
+    [SerializeField] private SpriteRenderer mainSpriteRenderer;
 
     [Header("Movement Settings")]
     [SerializeField] private float walkSpeed = 5f;
@@ -44,8 +50,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool isInSafeZone = false;
     [SerializeField] private bool isHidden = false;
     [SerializeField] private float hideDelay = 0.5f;
-    [SerializeField] private Color hiddenColor = new Color(0.2f, 0.2f, 0.2f, 0.3f);
-    [SerializeField] private Color normalColor = Color.white;
 
     [Header("Layer Settings")]
     [SerializeField] private string playerLayerName = "Player";
@@ -55,9 +59,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckRadius = 0.2f;
     [SerializeField] private LayerMask groundLayer;
-
-    [Header("Death Settings")]
-    [SerializeField] private Color deathColor = Color.red;
 
     [Header("Events")]
     public UnityEvent OnHide;
@@ -82,10 +83,14 @@ public class PlayerController : MonoBehaviour
     private BreathingState lastBreathingState = BreathingState.Normal;
     private bool isFacingRight = true;
 
+    // Cache de SpriteRenderers para personajes riggeados
+    private SpriteRenderer[] allSpriteRenderers;
+    private Color[] originalColors;
+
     // Referencias cacheadas
     private VignetteController vignetteController;
 
-    // Animation parameter hashes (más eficiente que strings)
+    // Animation parameter hashes
     private static readonly int AnimSpeed = Animator.StringToHash("Speed");
     private static readonly int AnimIsRunning = Animator.StringToHash("IsRunning");
     private static readonly int AnimIsGrounded = Animator.StringToHash("IsGrounded");
@@ -124,9 +129,11 @@ public class PlayerController : MonoBehaviour
     {
         // Obtener componentes
         if (rb == null) rb = GetComponent<Rigidbody2D>();
-        if (rend == null) rend = GetComponent<SpriteRenderer>();
         if (playerCollider == null) playerCollider = GetComponent<Collider2D>();
         if (animator == null) animator = GetComponent<Animator>();
+
+        // Cachear todos los SpriteRenderers para personajes riggeados
+        CacheAllSpriteRenderers();
 
         originalLayer = gameObject.layer;
         currentStamina = maxStamina;
@@ -134,13 +141,11 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        // Verificar configuración
         if (groundLayer.value == 0)
         {
             Debug.LogWarning("groundLayer no configurado en PlayerController");
         }
 
-        // Configurar layer inicial
         if (!string.IsNullOrEmpty(playerLayerName))
         {
             int layer = LayerMask.NameToLayer(playerLayerName);
@@ -151,14 +156,15 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // Buscar VignetteController
         FindVignetteController();
 
-        // Verificar Animator
         if (animator == null)
         {
             Debug.LogWarning("[PlayerController] No hay Animator asignado!");
         }
+
+        // Asegurar que el personaje empiece mirando a la derecha
+        SetFacingDirection(true);
     }
 
     private void Update()
@@ -168,7 +174,6 @@ public class PlayerController : MonoBehaviour
         HandleStamina();
         HandleFear();
         UpdateHideState();
-        UpdateAppearance();
         UpdateBreathing();
         UpdateExhaustedTimer();
         UpdateAnimations();
@@ -182,72 +187,187 @@ public class PlayerController : MonoBehaviour
     }
     #endregion
 
-    #region ANIMATION SYSTEM
+    private void UpdateBreathing()
+    {
+        if (AudioManager.Instance == null) return;
+
+        BreathingState newState;
+
+        if (IsPanicking)
+        {
+            newState = BreathingState.Panic;
+        }
+        else if (IsScared)
+        {
+            newState = BreathingState.Scared;
+        }
+        else if (isExhausted)
+        {
+            newState = BreathingState.Exhausted;
+        }
+        else if (StaminaPercentage < 0.3f || FearPercentage > 0.3f)
+        {
+            newState = BreathingState.Heavy;
+        }
+        else
+        {
+            newState = BreathingState.Normal;
+        }
+
+        if (newState != lastBreathingState)
+        {
+            AudioManager.Instance.SetBreathingState(newState);
+            lastBreathingState = newState;
+        }
+    }
+
+    #region SPRITE RENDERER CACHE (Para personajes riggeados)
     /// <summary>
-    /// Actualiza todos los parámetros del Animator
+    /// Cachea todos los SpriteRenderers del personaje riggeado
     /// </summary>
+    private void CacheAllSpriteRenderers()
+    {
+        if (isRiggedCharacter)
+        {
+            // Obtener todos los SpriteRenderers del personaje y sus hijos
+            allSpriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
+
+            // Guardar los colores originales
+            originalColors = new Color[allSpriteRenderers.Length];
+            for (int i = 0; i < allSpriteRenderers.Length; i++)
+            {
+                originalColors[i] = allSpriteRenderers[i].color;
+            }
+
+            Debug.Log($"[PlayerController] Personaje riggeado detectado con {allSpriteRenderers.Length} SpriteRenderers");
+        }
+        else
+        {
+            // Para sprites simples
+            if (mainSpriteRenderer == null)
+            {
+                mainSpriteRenderer = GetComponent<SpriteRenderer>();
+            }
+
+            if (mainSpriteRenderer != null)
+            {
+                allSpriteRenderers = new SpriteRenderer[] { mainSpriteRenderer };
+                originalColors = new Color[] { mainSpriteRenderer.color };
+            }
+        }
+    }
+
+    /// <summary>
+    /// Cambia el color de todos los SpriteRenderers
+    /// </summary>
+    private void SetAllSpritesColor(Color color)
+    {
+        if (allSpriteRenderers == null) return;
+
+        foreach (var sr in allSpriteRenderers)
+        {
+            if (sr != null)
+            {
+                sr.color = color;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Lerp del color de todos los SpriteRenderers
+    /// </summary>
+    private void LerpAllSpritesColor(Color targetColor, float speed)
+    {
+        if (allSpriteRenderers == null) return;
+
+        foreach (var sr in allSpriteRenderers)
+        {
+            if (sr != null)
+            {
+                sr.color = Color.Lerp(sr.color, targetColor, speed);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Restaura los colores originales
+    /// </summary>
+    private void RestoreOriginalColors()
+    {
+        if (allSpriteRenderers == null || originalColors == null) return;
+
+        for (int i = 0; i < allSpriteRenderers.Length && i < originalColors.Length; i++)
+        {
+            if (allSpriteRenderers[i] != null)
+            {
+                allSpriteRenderers[i].color = originalColors[i];
+            }
+        }
+    }
+    #endregion
+
+    #region ANIMATION SYSTEM
     private void UpdateAnimations()
     {
         if (animator == null) return;
 
-        // Velocidad horizontal (absoluta para animación de caminar)
         float speed = Mathf.Abs(horizontal);
         animator.SetFloat(AnimSpeed, speed);
 
-        // Estados de movimiento
         animator.SetBool(AnimIsRunning, isRunning && speed > 0.1f);
         animator.SetBool(AnimIsGrounded, IsGrounded());
         animator.SetFloat(AnimVerticalVelocity, rb.linearVelocity.y);
 
-        // Estados especiales
         animator.SetBool(AnimIsHidden, isHidden);
         animator.SetBool(AnimIsScared, IsScared);
         animator.SetBool(AnimIsPanicking, IsPanicking);
         animator.SetBool(AnimIsExhausted, isExhausted);
         animator.SetBool(AnimIsDead, isDead);
 
-        // Flip del sprite según dirección
         UpdateSpriteDirection();
     }
 
     /// <summary>
-    /// Voltea el sprite según la dirección del movimiento
+    /// Voltea el personaje según la dirección del movimiento
+    /// FUNCIONA CON PERSONAJES RIGGEADOS
     /// </summary>
     private void UpdateSpriteDirection()
     {
-        // Solo cambiar si hay movimiento horizontal significativo
         if (Mathf.Abs(horizontal) > 0.1f)
         {
             bool shouldFaceRight = horizontal > 0;
 
             if (shouldFaceRight != isFacingRight)
             {
-                isFacingRight = shouldFaceRight;
-                FlipSprite();
+                SetFacingDirection(shouldFaceRight);
             }
         }
     }
 
     /// <summary>
-    /// Voltea el sprite horizontal
+    /// Establece la dirección del personaje usando escala
+    /// COMPATIBLE CON PERSONAJES RIGGEADOS (PSB)
     /// </summary>
-    private void FlipSprite()
+    private void SetFacingDirection(bool faceRight)
     {
-        // Opción 1: Usar SpriteRenderer.flipX
-        if (rend != null)
-        {
-            rend.flipX = !isFacingRight;
-        }
+        isFacingRight = faceRight;
 
-        // Opción 2: Usar escala (descomenta si prefieres este método)
-        // Vector3 scale = transform.localScale;
-        // scale.x = isFacingRight ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
-        // transform.localScale = scale;
+        // MÉTODO CORRECTO PARA PERSONAJES RIGGEADOS: Usar escala
+        Vector3 scale = transform.localScale;
+        scale.x = faceRight ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
+        transform.localScale = scale;
+
+        Debug.Log($"[PlayerController] Personaje mirando a la {(faceRight ? "derecha" : "izquierda")}");
     }
 
     /// <summary>
-    /// Dispara un trigger de animación
+    /// Método público para forzar la dirección desde otros scripts
     /// </summary>
+    public void ForceFaceDirection(bool faceRight)
+    {
+        SetFacingDirection(faceRight);
+    }
+
     private void TriggerAnimation(int triggerHash)
     {
         if (animator != null)
@@ -256,9 +376,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Ajusta la velocidad de la animación actual
-    /// </summary>
     public void SetAnimationSpeed(float speed)
     {
         if (animator != null)
@@ -267,9 +384,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Reproduce una animación específica por nombre
-    /// </summary>
     public void PlayAnimation(string animationName, int layer = 0)
     {
         if (animator != null)
@@ -470,7 +584,6 @@ public class PlayerController : MonoBehaviour
         OnPanic?.Invoke();
         TriggerPanicFlash();
 
-        // Trigger de animación de pánico
         TriggerAnimation(AnimPanic);
 
         ForceUnhide();
@@ -490,9 +603,7 @@ public class PlayerController : MonoBehaviour
         float elapsed = 0f;
         float panicDirection = Random.value > 0.5f ? 1f : -1f;
 
-        // Forzar dirección del sprite durante pánico
-        isFacingRight = panicDirection > 0;
-        FlipSprite();
+        SetFacingDirection(panicDirection > 0);
 
         while (elapsed < panicDuration)
         {
@@ -541,7 +652,7 @@ public class PlayerController : MonoBehaviour
             child.gameObject.layer = targetLayer;
         }
 
-        Debug.Log(hidden ? "Cambió a layer Hidden" : "👤 Cambió a layer Player");
+        Debug.Log(hidden ? "Cambió a layer Hidden" : "Cambió a layer Player");
     }
 
     public void EnterSafeZone()
@@ -569,7 +680,6 @@ public class PlayerController : MonoBehaviour
         isHidden = false;
         SetHiddenLayer(false);
 
-        // Trigger de animación de salir
         TriggerAnimation(AnimUnhide);
 
         if (GameData.instance != null)
@@ -583,64 +693,6 @@ public class PlayerController : MonoBehaviour
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayUnhideSound();
-        }
-    }
-    #endregion
-
-    #region APPEARANCE
-    private void UpdateAppearance()
-    {
-        if (isDead) return;
-
-        Color targetColor;
-
-        if (isHidden && isInSafeZone)
-        {
-            targetColor = hiddenColor;
-        }
-        else if (isInSafeZone)
-        {
-            targetColor = Color.Lerp(normalColor, hiddenColor, 0.3f);
-        }
-        else
-        {
-            targetColor = normalColor;
-        }
-
-        rend.color = Color.Lerp(rend.color, targetColor, Time.deltaTime * 5f);
-    }
-
-    private void UpdateBreathing()
-    {
-        if (AudioManager.Instance == null) return;
-
-        BreathingState newState;
-
-        if (IsPanicking)
-        {
-            newState = BreathingState.Panic;
-        }
-        else if (IsScared)
-        {
-            newState = BreathingState.Scared;
-        }
-        else if (isExhausted)
-        {
-            newState = BreathingState.Exhausted;
-        }
-        else if (StaminaPercentage < 0.3f || FearPercentage > 0.3f)
-        {
-            newState = BreathingState.Heavy;
-        }
-        else
-        {
-            newState = BreathingState.Normal;
-        }
-
-        if (newState != lastBreathingState)
-        {
-            AudioManager.Instance.SetBreathingState(newState);
-            lastBreathingState = newState;
         }
     }
     #endregion
@@ -675,7 +727,6 @@ public class PlayerController : MonoBehaviour
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpingPower);
 
-            // Trigger de animación de salto
             TriggerAnimation(AnimJump);
 
             Debug.Log("Saltando!");
@@ -692,7 +743,6 @@ public class PlayerController : MonoBehaviour
             {
                 isHidden = true;
 
-                // Trigger de animación de esconderse
                 TriggerAnimation(AnimHide);
 
                 OnHide?.Invoke();
@@ -767,12 +817,17 @@ public class PlayerController : MonoBehaviour
     #region DEATH SYSTEM
     public void TakeDamage()
     {
+        if (isDead) return; // Prevenir múltiples llamadas
+
+        Debug.Log("[PlayerController] ¡TakeDamage llamado!");
         TriggerDamageFlash();
         Die("Un enemigo te atacó");
     }
 
     public void GetDiscovered()
     {
+        if (isDead) return; // Prevenir múltiples llamadas
+
         TriggerDiscoveryFlash();
 
         if (GameData.instance != null)
@@ -789,15 +844,17 @@ public class PlayerController : MonoBehaviour
 
         isDead = true;
 
+        Debug.Log($"[PlayerController] ¡MURIENDO! Razón: {reason}");
+
         TriggerDeathFlash();
 
-        // Trigger de animación de muerte
         TriggerAnimation(AnimDie);
 
         rb.linearVelocity = Vector2.zero;
         rb.bodyType = RigidbodyType2D.Static;
 
-        rend.color = deathColor;
+        // Cambiar color a rojo para indicar muerte (todos los sprites)
+        SetAllSpritesColor(Color.red);
 
         horizontal = 0;
         isRunning = false;
@@ -807,12 +864,18 @@ public class PlayerController : MonoBehaviour
 
         OnDeath?.Invoke();
 
+        // Llamar al GameManager
         if (GameManager.Instance != null)
         {
+            Debug.Log("[PlayerController] Llamando a GameManager.GameOver()");
             GameManager.Instance.GameOver(reason);
         }
+        else
+        {
+            Debug.LogError("[PlayerController] ¡GameManager.Instance es NULL! No se puede llamar GameOver.");
+        }
 
-        Debug.Log($"Muerte: {reason}");
+        Debug.Log($"[PlayerController] Muerte completada: {reason}");
     }
     #endregion
 

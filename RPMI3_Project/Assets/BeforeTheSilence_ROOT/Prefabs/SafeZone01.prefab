@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5607353648087669709}
   - component: {fileID: 6049675434502499061}
   - component: {fileID: 641986478748968558}
+  - component: {fileID: 7440421614376186132}
   m_Layer: 10
   m_Name: SafeZone01
   m_TagString: SafeZone
@@ -27,7 +28,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1417586129473212801}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.62, y: 1.3, z: 0}
   m_LocalScale: {x: 1.66, y: 2.72, z: 1.3}
   m_ConstrainProportionsScale: 0
@@ -155,8 +156,56 @@ MonoBehaviour:
   discoveryRisk: 0.2
   zoneColor: {r: 0.08235294, g: 0.08235294, b: 0.08235294, a: 0.3}
   showZoneVisual: 1
-  showInteractionPrompt: 1
-  promptText: E
-  promptOffset: {x: 0, y: 1.5, z: 0}
+  interactionPrompt: {fileID: 7440421614376186132}
   enterParticles: {fileID: 0}
   hideParticles: {fileID: 0}
+--- !u!114 &7440421614376186132
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1417586129473212801}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73749d1f5980eaa42b0b704c57453b2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractionPrompt
+  promptType: 0
+  offset: {x: 0, y: 1.2, z: 0}
+  followTarget: 1
+  customTarget: {fileID: 0}
+  promptText: E
+  customFont: {fileID: 11400000, guid: 6c695958b5dc99244b95461269942c2f, type: 2}
+  fontSize: 5
+  textColor: {r: 1, g: 1, b: 1, a: 1}
+  textOutlineColor: {r: 0, g: 0, b: 0, a: 1}
+  outlineWidth: 0.2
+  fontStyle: 1
+  showBackground: 0
+  customBackgroundSprite: {fileID: 0}
+  backgroundColor: {r: 0, g: 0, b: 0, a: 0.75}
+  backgroundPadding: {x: 0.5, y: 0.3}
+  backgroundSize: {x: 1, y: 1}
+  iconSprite: {fileID: 0}
+  iconColor: {r: 1, g: 1, b: 1, a: 1}
+  iconSize: {x: 1, y: 1}
+  iconOffset: {x: 0, y: 0, z: 0}
+  enableHighlight: 1
+  highlightTextColor: {r: 0.3, g: 1, b: 0.4, a: 1}
+  highlightBackgroundColor: {r: 0.1, g: 0.3, b: 0.1, a: 0.85}
+  highlightIconColor: {r: 0.3, g: 1, b: 0.4, a: 1}
+  highlightDistance: 1.5
+  enableBobbing: 1
+  bobSpeed: 2
+  bobAmount: 0.1
+  enablePulse: 1
+  pulseSpeed: 1.5
+  pulseMinScale: 0.95
+  pulseMaxScale: 1.05
+  fadeSpeed: 8
+  showOnlyWhenPlayerNear: 1
+  detectionRadius: 2.5
+  hideWhenPlayerHidden: 1
+  sortingOrder: 100
+  debugMode: 0
