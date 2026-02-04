@@ -2172,6 +2172,11 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!212 &670387672 stripped
+SpriteRenderer:
+  m_CorrespondingSourceObject: {fileID: 7868223595930112913, guid: bc6d837d91e667147a257890267bbf26, type: 3}
+  m_PrefabInstance: {fileID: 5445190877714509161}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &682084624
 GameObject:
   m_ObjectHideFlags: 0
@@ -4314,6 +4319,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1259792971}
   m_CullTransparentMesh: 1
+--- !u!95 &1266726222 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 4696034031091495024, guid: bc6d837d91e667147a257890267bbf26, type: 3}
+  m_PrefabInstance: {fileID: 5445190877714509161}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1288107037
 GameObject:
   m_ObjectHideFlags: 0
@@ -6519,6 +6529,61 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1929281100}
   m_CullTransparentMesh: 1
+--- !u!1 &1975973091 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1417586129473212801, guid: de87405ea89d79244b7a8f052f0c6f45, type: 3}
+  m_PrefabInstance: {fileID: 4517775668168769281}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1975973095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1975973091}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73749d1f5980eaa42b0b704c57453b2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractionPrompt
+  promptType: 0
+  offset: {x: 0, y: 1.2, z: 0}
+  followTarget: 1
+  customTarget: {fileID: 0}
+  promptText: E
+  customFont: {fileID: 0}
+  fontSize: 5
+  textColor: {r: 1, g: 1, b: 1, a: 1}
+  textOutlineColor: {r: 0, g: 0, b: 0, a: 1}
+  outlineWidth: 0.2
+  fontStyle: 1
+  showBackground: 1
+  customBackgroundSprite: {fileID: 0}
+  backgroundColor: {r: 0, g: 0, b: 0, a: 0.75}
+  backgroundPadding: {x: 0.5, y: 0.3}
+  backgroundSize: {x: 1, y: 1}
+  iconSprite: {fileID: 0}
+  iconColor: {r: 1, g: 1, b: 1, a: 1}
+  iconSize: {x: 1, y: 1}
+  iconOffset: {x: 0, y: 0, z: 0}
+  enableHighlight: 1
+  highlightTextColor: {r: 0.3, g: 1, b: 0.4, a: 1}
+  highlightBackgroundColor: {r: 0.1, g: 0.3, b: 0.1, a: 0.85}
+  highlightIconColor: {r: 0.3, g: 1, b: 0.4, a: 1}
+  highlightDistance: 1.5
+  enableBobbing: 1
+  bobSpeed: 2
+  bobAmount: 0.1
+  enablePulse: 1
+  pulseSpeed: 1.5
+  pulseMinScale: 0.95
+  pulseMaxScale: 1.05
+  fadeSpeed: 8
+  showOnlyWhenPlayerNear: 1
+  detectionRadius: 2.5
+  hideWhenPlayerHidden: 1
+  sortingOrder: 100
+  debugMode: 0
 --- !u!1 &1981245159
 GameObject:
   m_ObjectHideFlags: 0
@@ -7050,7 +7115,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1417586129473212801, guid: de87405ea89d79244b7a8f052f0c6f45, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1975973095}
   m_SourcePrefab: {fileID: 100100000, guid: de87405ea89d79244b7a8f052f0c6f45, type: 3}
 --- !u!1001 &5445190877714509161
 PrefabInstance:
@@ -7083,6 +7151,10 @@ PrefabInstance:
     - target: {fileID: 2879443394862383819, guid: bc6d837d91e667147a257890267bbf26, type: 3}
       propertyPath: m_LocalRotation.w
       value: 0.0017056275
+      objectReference: {fileID: 0}
+    - target: {fileID: 4696034031091495024, guid: bc6d837d91e667147a257890267bbf26, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6274004668812647913, guid: bc6d837d91e667147a257890267bbf26, type: 3}
       propertyPath: indicatorSprite
@@ -7135,6 +7207,18 @@ PrefabInstance:
     - target: {fileID: 7672828533023560038, guid: bc6d837d91e667147a257890267bbf26, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7919050939102121772, guid: bc6d837d91e667147a257890267bbf26, type: 3}
+      propertyPath: rend
+      value: 
+      objectReference: {fileID: 670387672}
+    - target: {fileID: 7919050939102121772, guid: bc6d837d91e667147a257890267bbf26, type: 3}
+      propertyPath: animator
+      value: 
+      objectReference: {fileID: 1266726222}
+    - target: {fileID: 7919050939102121772, guid: bc6d837d91e667147a257890267bbf26, type: 3}
+      propertyPath: walkSpeed
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
