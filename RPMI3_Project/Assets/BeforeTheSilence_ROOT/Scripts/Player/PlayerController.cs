@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.Events;
 
 /// <summary>
-/// Controlador completo del jugador con sistemas de stamina, miedo y escondite.
+/// Controlador completo del jugador con sistemas de stamina, miedo, escondite y animaciones.
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private SpriteRenderer rend;
     [SerializeField] private Collider2D playerCollider;
+    [SerializeField] private Animator animator;
 
     [Header("Movement Settings")]
     [SerializeField] private float walkSpeed = 5f;
@@ -79,9 +80,26 @@ public class PlayerController : MonoBehaviour
     private bool wasNervous = false;
     private int originalLayer;
     private BreathingState lastBreathingState = BreathingState.Normal;
+    private bool isFacingRight = true;
 
-    // ✅ NUEVO: Referencia cacheada al VignetteController
+    // Referencias cacheadas
     private VignetteController vignetteController;
+
+    // Animation parameter hashes (más eficiente que strings)
+    private static readonly int AnimSpeed = Animator.StringToHash("Speed");
+    private static readonly int AnimIsRunning = Animator.StringToHash("IsRunning");
+    private static readonly int AnimIsGrounded = Animator.StringToHash("IsGrounded");
+    private static readonly int AnimVerticalVelocity = Animator.StringToHash("VerticalVelocity");
+    private static readonly int AnimIsHidden = Animator.StringToHash("IsHidden");
+    private static readonly int AnimIsScared = Animator.StringToHash("IsScared");
+    private static readonly int AnimIsPanicking = Animator.StringToHash("IsPanicking");
+    private static readonly int AnimIsExhausted = Animator.StringToHash("IsExhausted");
+    private static readonly int AnimIsDead = Animator.StringToHash("IsDead");
+    private static readonly int AnimJump = Animator.StringToHash("Jump");
+    private static readonly int AnimHide = Animator.StringToHash("Hide");
+    private static readonly int AnimUnhide = Animator.StringToHash("Unhide");
+    private static readonly int AnimDie = Animator.StringToHash("Die");
+    private static readonly int AnimPanic = Animator.StringToHash("Panic");
     #endregion
 
     #region PROPERTIES
@@ -90,6 +108,7 @@ public class PlayerController : MonoBehaviour
     public bool IsDead => isDead;
     public bool IsExhausted => isExhausted;
     public Vector2 Position => transform.position;
+    public bool IsFacingRight => isFacingRight;
 
     public float FearPercentage => currentFearTime / maxFearTime;
     public float StaminaPercentage => currentStamina / maxStamina;
@@ -107,6 +126,7 @@ public class PlayerController : MonoBehaviour
         if (rb == null) rb = GetComponent<Rigidbody2D>();
         if (rend == null) rend = GetComponent<SpriteRenderer>();
         if (playerCollider == null) playerCollider = GetComponent<Collider2D>();
+        if (animator == null) animator = GetComponent<Animator>();
 
         originalLayer = gameObject.layer;
         currentStamina = maxStamina;
@@ -131,8 +151,14 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // ✅ NUEVO: Buscar VignetteController
+        // Buscar VignetteController
         FindVignetteController();
+
+        // Verificar Animator
+        if (animator == null)
+        {
+            Debug.LogWarning("[PlayerController] No hay Animator asignado!");
+        }
     }
 
     private void Update()
@@ -145,6 +171,7 @@ public class PlayerController : MonoBehaviour
         UpdateAppearance();
         UpdateBreathing();
         UpdateExhaustedTimer();
+        UpdateAnimations();
     }
 
     private void FixedUpdate()
@@ -155,10 +182,104 @@ public class PlayerController : MonoBehaviour
     }
     #endregion
 
-    #region VIGNETTE INTEGRATION
+    #region ANIMATION SYSTEM
     /// <summary>
-    /// Busca y cachea la referencia al VignetteController
+    /// Actualiza todos los parámetros del Animator
     /// </summary>
+    private void UpdateAnimations()
+    {
+        if (animator == null) return;
+
+        // Velocidad horizontal (absoluta para animación de caminar)
+        float speed = Mathf.Abs(horizontal);
+        animator.SetFloat(AnimSpeed, speed);
+
+        // Estados de movimiento
+        animator.SetBool(AnimIsRunning, isRunning && speed > 0.1f);
+        animator.SetBool(AnimIsGrounded, IsGrounded());
+        animator.SetFloat(AnimVerticalVelocity, rb.linearVelocity.y);
+
+        // Estados especiales
+        animator.SetBool(AnimIsHidden, isHidden);
+        animator.SetBool(AnimIsScared, IsScared);
+        animator.SetBool(AnimIsPanicking, IsPanicking);
+        animator.SetBool(AnimIsExhausted, isExhausted);
+        animator.SetBool(AnimIsDead, isDead);
+
+        // Flip del sprite según dirección
+        UpdateSpriteDirection();
+    }
+
+    /// <summary>
+    /// Voltea el sprite según la dirección del movimiento
+    /// </summary>
+    private void UpdateSpriteDirection()
+    {
+        // Solo cambiar si hay movimiento horizontal significativo
+        if (Mathf.Abs(horizontal) > 0.1f)
+        {
+            bool shouldFaceRight = horizontal > 0;
+
+            if (shouldFaceRight != isFacingRight)
+            {
+                isFacingRight = shouldFaceRight;
+                FlipSprite();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Voltea el sprite horizontal
+    /// </summary>
+    private void FlipSprite()
+    {
+        // Opción 1: Usar SpriteRenderer.flipX
+        if (rend != null)
+        {
+            rend.flipX = !isFacingRight;
+        }
+
+        // Opción 2: Usar escala (descomenta si prefieres este método)
+        // Vector3 scale = transform.localScale;
+        // scale.x = isFacingRight ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
+        // transform.localScale = scale;
+    }
+
+    /// <summary>
+    /// Dispara un trigger de animación
+    /// </summary>
+    private void TriggerAnimation(int triggerHash)
+    {
+        if (animator != null)
+        {
+            animator.SetTrigger(triggerHash);
+        }
+    }
+
+    /// <summary>
+    /// Ajusta la velocidad de la animación actual
+    /// </summary>
+    public void SetAnimationSpeed(float speed)
+    {
+        if (animator != null)
+        {
+            animator.speed = speed;
+        }
+    }
+
+    /// <summary>
+    /// Reproduce una animación específica por nombre
+    /// </summary>
+    public void PlayAnimation(string animationName, int layer = 0)
+    {
+        if (animator != null)
+        {
+            animator.Play(animationName, layer);
+        }
+    }
+    #endregion
+
+    #region VIGNETTE INTEGRATION
     private void FindVignetteController()
     {
         if (vignetteController == null)
@@ -172,68 +293,40 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Ejecuta un flash de pánico en el VignetteController
-    /// </summary>
     private void TriggerPanicFlash()
     {
         if (vignetteController == null)
-        {
             FindVignetteController();
-        }
 
         if (vignetteController != null)
-        {
             vignetteController.PanicFlash();
-        }
     }
 
-    /// <summary>
-    /// Ejecuta un flash de descubrimiento en el VignetteController
-    /// </summary>
     private void TriggerDiscoveryFlash()
     {
         if (vignetteController == null)
-        {
             FindVignetteController();
-        }
 
         if (vignetteController != null)
-        {
             vignetteController.DiscoveryFlash();
-        }
     }
 
-    /// <summary>
-    /// Ejecuta un flash de muerte en el VignetteController
-    /// </summary>
     private void TriggerDeathFlash()
     {
         if (vignetteController == null)
-        {
             FindVignetteController();
-        }
 
         if (vignetteController != null)
-        {
             vignetteController.DeathFlash();
-        }
     }
 
-    /// <summary>
-    /// Ejecuta un flash de daño en el VignetteController
-    /// </summary>
     private void TriggerDamageFlash()
     {
         if (vignetteController == null)
-        {
             FindVignetteController();
-        }
 
         if (vignetteController != null)
-        {
             vignetteController.DamageFlash();
-        }
     }
     #endregion
 
@@ -247,7 +340,7 @@ public class PlayerController : MonoBehaviour
     private float GetCurrentSpeed()
     {
         if (isExhausted) return slowSpeed;
-        if (IsPanicking) return runSpeed * 0.5f; // Más lenta cuando está en pánico
+        if (IsPanicking) return runSpeed * 0.5f;
         if (isRunning && horizontal != 0 && currentStamina > 0) return runSpeed;
         return walkSpeed;
     }
@@ -280,7 +373,6 @@ public class PlayerController : MonoBehaviour
 
         if (isRunning && horizontal != 0 && currentStamina > 0 && !isExhausted)
         {
-            // Consumir stamina
             currentStamina -= runCost * Time.deltaTime;
 
             if (currentStamina <= 0)
@@ -291,18 +383,15 @@ public class PlayerController : MonoBehaviour
         }
         else if (isExhausted)
         {
-            // Recuperación lenta cuando está agotada
             currentStamina += exhaustedRecoveryRate * Time.deltaTime;
             currentStamina = Mathf.Min(currentStamina, maxStamina);
         }
         else
         {
-            // Recuperación normal
             currentStamina += staminaRecoveryRate * Time.deltaTime;
             currentStamina = Mathf.Min(currentStamina, maxStamina);
         }
 
-        // Notificar cambio
         if (Mathf.Abs(previousStamina - currentStamina) > 0.1f)
         {
             OnStaminaChanged?.Invoke(StaminaPercentage);
@@ -324,7 +413,6 @@ public class PlayerController : MonoBehaviour
         {
             exhaustedTimer -= Time.deltaTime;
 
-            // Recuperarse si ha pasado el tiempo Y tiene algo de stamina
             if (exhaustedTimer <= 0f && currentStamina >= maxStamina * 0.3f)
             {
                 isExhausted = false;
@@ -341,10 +429,8 @@ public class PlayerController : MonoBehaviour
 
         if (isHidden && isInSafeZone)
         {
-            // Acumular miedo en la oscuridad
             currentFearTime += fearBuildupRate * Time.deltaTime;
 
-            // Detectar cuando empieza el nerviosismo
             if (!wasNervous && FearPercentage >= nervousThreshold)
             {
                 wasNervous = true;
@@ -352,7 +438,6 @@ public class PlayerController : MonoBehaviour
                 Debug.Log("La niña empieza a ponerse nerviosa...");
             }
 
-            // Pánico
             if (currentFearTime >= maxFearTime)
             {
                 TriggerPanic();
@@ -360,7 +445,6 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            // Recuperar calma fuera del escondite
             if (currentFearTime > 0)
             {
                 currentFearTime -= fearRecoveryRate * Time.deltaTime;
@@ -373,7 +457,6 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // Notificar cambio
         if (Mathf.Abs(previousFear - currentFearTime) > 0.01f)
         {
             OnFearChanged?.Invoke(FearPercentage);
@@ -385,21 +468,19 @@ public class PlayerController : MonoBehaviour
         Debug.Log("¡La niña no aguanta más la oscuridad!");
 
         OnPanic?.Invoke();
-
-        // ✅ NUEVO: Flash visual de pánico
         TriggerPanicFlash();
 
-        // Forzar salir del escondite
-        ForceUnhide();
-        currentFearTime = maxFearTime * 0.5f; // Mantener algo de miedo
+        // Trigger de animación de pánico
+        TriggerAnimation(AnimPanic);
 
-        // Audio
+        ForceUnhide();
+        currentFearTime = maxFearTime * 0.5f;
+
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.SetBreathingState(BreathingState.Panic);
         }
 
-        // Correr involuntariamente
         StartCoroutine(PanicRun());
     }
 
@@ -408,6 +489,10 @@ public class PlayerController : MonoBehaviour
         float panicDuration = 1.5f;
         float elapsed = 0f;
         float panicDirection = Random.value > 0.5f ? 1f : -1f;
+
+        // Forzar dirección del sprite durante pánico
+        isFacingRight = panicDirection > 0;
+        FlipSprite();
 
         while (elapsed < panicDuration)
         {
@@ -426,7 +511,6 @@ public class PlayerController : MonoBehaviour
             hideTimer += Time.deltaTime;
             totalHideTime += Time.deltaTime;
 
-            // Cambiar a layer oculto después del delay
             if (hideTimer >= hideDelay && gameObject.layer != LayerMask.NameToLayer(hiddenLayerName))
             {
                 SetHiddenLayer(true);
@@ -452,7 +536,6 @@ public class PlayerController : MonoBehaviour
 
         gameObject.layer = targetLayer;
 
-        // También cambiar hijos si los hay
         foreach (Transform child in transform)
         {
             child.gameObject.layer = targetLayer;
@@ -486,7 +569,9 @@ public class PlayerController : MonoBehaviour
         isHidden = false;
         SetHiddenLayer(false);
 
-        // Registrar estadística
+        // Trigger de animación de salir
+        TriggerAnimation(AnimUnhide);
+
         if (GameData.instance != null)
         {
             GameData.instance.RegisterHideAttempt(totalHideTime);
@@ -589,6 +674,10 @@ public class PlayerController : MonoBehaviour
         if (context.performed && IsGrounded())
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpingPower);
+
+            // Trigger de animación de salto
+            TriggerAnimation(AnimJump);
+
             Debug.Log("Saltando!");
         }
     }
@@ -601,8 +690,11 @@ public class PlayerController : MonoBehaviour
         {
             if (!isHidden)
             {
-                // Esconderse
                 isHidden = true;
+
+                // Trigger de animación de esconderse
+                TriggerAnimation(AnimHide);
+
                 OnHide?.Invoke();
 
                 if (AudioManager.Instance != null)
@@ -614,7 +706,6 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                // Salir del escondite
                 ForceUnhide();
                 Debug.Log("Visible");
             }
@@ -627,7 +718,6 @@ public class PlayerController : MonoBehaviour
     {
         if (isDead) return false;
 
-        // Si está en layer oculto, no puede ser visto
         if (gameObject.layer == LayerMask.NameToLayer(hiddenLayerName))
         {
             return false;
@@ -657,7 +747,6 @@ public class PlayerController : MonoBehaviour
 
         if (distance <= searchRange)
         {
-            // Probabilidad basada en distancia e intensidad
             float baseChance = 0.1f;
             float distanceFactor = 1f - (distance / searchRange);
             float discoveryChance = (baseChance + (distanceFactor * 0.5f)) * intensity;
@@ -678,15 +767,12 @@ public class PlayerController : MonoBehaviour
     #region DEATH SYSTEM
     public void TakeDamage()
     {
-        // ✅ NUEVO: Flash visual de daño
         TriggerDamageFlash();
-
         Die("Un enemigo te atacó");
     }
 
     public void GetDiscovered()
     {
-        // ✅ NUEVO: Flash visual de descubrimiento
         TriggerDiscoveryFlash();
 
         if (GameData.instance != null)
@@ -703,27 +789,24 @@ public class PlayerController : MonoBehaviour
 
         isDead = true;
 
-        // ✅ NUEVO: Flash visual de muerte
         TriggerDeathFlash();
 
-        // Detener movimiento
+        // Trigger de animación de muerte
+        TriggerAnimation(AnimDie);
+
         rb.linearVelocity = Vector2.zero;
         rb.bodyType = RigidbodyType2D.Static;
 
-        // Visual
         rend.color = deathColor;
 
-        // Estado
         horizontal = 0;
         isRunning = false;
         isHidden = false;
 
-        // Restaurar layer
         SetHiddenLayer(false);
 
         OnDeath?.Invoke();
 
-        // Game Over
         if (GameManager.Instance != null)
         {
             GameManager.Instance.GameOver(reason);
