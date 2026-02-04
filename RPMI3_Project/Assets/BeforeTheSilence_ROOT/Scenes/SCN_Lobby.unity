@@ -4414,7 +4414,11 @@ MonoBehaviour:
   doorOpenSound: {fileID: 0}
   lockedSound: {fileID: 0}
   useLoadingScreen: 1
-  transitionDelay: 0.5
+  delayBeforeFade: 0.5
+  freezePlayerOnEnter: 1
+  useCustomFade: 0
+  customFadeDuration: 1
+  fadeColor: {r: 0, g: 0, b: 0, a: 1}
   debugMode: 0
 --- !u!61 &1247946255
 BoxCollider2D:
@@ -6927,7 +6931,11 @@ MonoBehaviour:
   doorOpenSound: {fileID: 0}
   lockedSound: {fileID: 0}
   useLoadingScreen: 1
-  transitionDelay: 0.5
+  delayBeforeFade: 0.3
+  freezePlayerOnEnter: 1
+  useCustomFade: 0
+  customFadeDuration: 0.5
+  fadeColor: {r: 0, g: 0, b: 0, a: 1}
   debugMode: 0
 --- !u!61 &1994172372
 BoxCollider2D:
