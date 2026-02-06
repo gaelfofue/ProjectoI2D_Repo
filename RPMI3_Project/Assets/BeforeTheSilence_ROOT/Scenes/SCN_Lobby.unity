@@ -4893,7 +4893,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1372275336}
-  - component: {fileID: 1372275335}
+  - component: {fileID: 1372275337}
   m_Layer: 0
   m_Name: _PostProcessing
   m_TagString: Untagged
@@ -4901,71 +4901,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1372275335
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1372275334}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f3fb5643b2f95294e912e52748fdb18d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VignetteController
-  postProcessVolume: {fileID: 436125787}
-  player: {fileID: 911130299}
-  baseVignetteIntensity: 0.2
-  baseVignetteSmoothness: 0.4
-  baseVignetteColor: {r: 0, g: 0, b: 0, a: 1}
-  hiddenVignetteIntensity: 0.45
-  exhaustedVignetteIntensity: 0.55
-  scaredVignetteIntensity: 0.6
-  panicVignetteIntensity: 0.7
-  hiddenVignetteColor: {r: 0.05, g: 0.05, b: 0.1, a: 1}
-  exhaustedVignetteColor: {r: 0.3, g: 0, b: 0, a: 1}
-  fearVignetteColor: {r: 0.1, g: 0, b: 0.15, a: 1}
-  panicVignetteColor: {r: 0.4, g: 0, b: 0.1, a: 1}
-  baseSaturation: -10
-  baseContrast: 5
-  baseExposure: 0
-  fearSaturation: -35
-  panicSaturation: -50
-  fearContrast: 10
-  panicContrast: 25
-  fearExposure: -0.2
-  panicExposure: -0.4
-  exhaustedSaturation: -25
-  exhaustedContrast: 10
-  enableChromaticAberration: 1
-  baseChromaticIntensity: 0
-  scaredChromaticIntensity: 0.15
-  panicChromaticIntensity: 0.5
-  damageChromaticIntensity: 0.8
-  enableLensDistortion: 1
-  baseLensDistortion: 0
-  panicLensDistortion: -0.3
-  hiddenLensDistortion: -0.1
-  enableFilmGrain: 1
-  baseGrainIntensity: 0.1
-  fearGrainIntensity: 0.35
-  panicGrainIntensity: 0.5
-  enableBloom: 1
-  baseBloomIntensity: 0.5
-  fearBloomIntensity: 0.3
-  panicBloomIntensity: 0.8
-  enablePulse: 1
-  normalPulseSpeed: 1
-  nervousPulseSpeed: 1.5
-  scaredPulseSpeed: 2.5
-  panicPulseSpeed: 5
-  basePulseIntensity: 0.02
-  fearPulseIntensity: 0.05
-  panicPulseIntensity: 0.15
-  normalTransitionSpeed: 3
-  fastTransitionSpeed: 8
-  flashTransitionSpeed: 15
-  showDebugInfo: 0
 --- !u!4 &1372275336
 Transform:
   m_ObjectHideFlags: 0
@@ -4981,6 +4916,71 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1372275337
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372275334}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3fb5643b2f95294e912e52748fdb18d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VignetteController
+  postProcessVolume: {fileID: 436125787}
+  player: {fileID: 911130299}
+  baseVignetteIntensity: 0.37
+  baseVignetteSmoothness: 0.4
+  baseVignetteColor: {r: 0, g: 0, b: 0, a: 1}
+  hiddenVignetteIntensity: 0.5
+  exhaustedVignetteIntensity: 0.55
+  scaredVignetteIntensity: 0.6
+  panicVignetteIntensity: 0.7
+  hiddenVignetteColor: {r: 0.05, g: 0.02, b: 0.1, a: 1}
+  exhaustedVignetteColor: {r: 0.2, g: 0.05, b: 0.05, a: 1}
+  fearVignetteColor: {r: 0.1, g: 0.02, b: 0.15, a: 1}
+  panicVignetteColor: {r: 0.3, g: 0.02, b: 0.08, a: 1}
+  baseSaturation: -10
+  baseContrast: 5
+  baseExposure: 0
+  fearSaturation: -35
+  panicSaturation: -50
+  fearContrast: 15
+  panicContrast: 25
+  fearExposure: -0.2
+  panicExposure: -0.4
+  exhaustedSaturation: -25
+  exhaustedContrast: 10
+  enableChromaticAberration: 1
+  baseChromaticIntensity: 0
+  scaredChromaticIntensity: 0.15
+  panicChromaticIntensity: 0.5
+  damageChromaticIntensity: 0.8
+  enableLensDistortion: 1
+  baseLensDistortion: 0
+  panicLensDistortion: -0.3
+  hiddenLensDistortion: -0.1
+  enableFilmGrain: 1
+  baseGrainIntensity: 0.15
+  fearGrainIntensity: 0.35
+  panicGrainIntensity: 0.5
+  enableBloom: 1
+  baseBloomIntensity: 0.5
+  fearBloomIntensity: 0.3
+  panicBloomIntensity: 0.8
+  enablePulse: 1
+  normalPulseSpeed: 1
+  nervousPulseSpeed: 1.5
+  scaredPulseSpeed: 2.5
+  panicPulseSpeed: 5
+  basePulseIntensity: 0.02
+  fearPulseIntensity: 0.05
+  panicPulseIntensity: 0.12
+  normalTransitionSpeed: 3
+  fastTransitionSpeed: 8
+  flashTransitionSpeed: 20
+  showDebugInfo: 0
 --- !u!1 &1387508327
 GameObject:
   m_ObjectHideFlags: 0

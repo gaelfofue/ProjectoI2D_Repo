@@ -19,7 +19,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4693010173898516765
 Transform:
   m_ObjectHideFlags: 0
@@ -29,7 +29,7 @@ Transform:
   m_GameObject: {fileID: 5299590656440286252}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 5.36, y: -0.26, z: 0}
+  m_LocalPosition: {x: 82.01, y: 1.7, z: -2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -172,6 +172,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SimpleEnemy
   rb: {fileID: 6000255502480040162}
   rend: {fileID: 6949640570041843257}
+  attackTrigger: {fileID: 0}
   moveSpeed: 3
   chaseSpeed: 4.5
   searchSpeed: 1.5
@@ -179,6 +180,8 @@ MonoBehaviour:
   attackRange: 1
   searchRange: 2
   hearingRange: 3
+  attackCooldown: 1
+  useCollisionAttack: 1
   enablePatrol: 1
   patrolDistance: 5
   waitTimeAtPoint: 1

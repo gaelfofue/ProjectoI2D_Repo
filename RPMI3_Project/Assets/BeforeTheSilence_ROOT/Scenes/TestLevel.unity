@@ -4648,7 +4648,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VignetteController
   postProcessVolume: {fileID: 436125787}
   player: {fileID: 911130299}
-  baseVignetteIntensity: 0.2
+  baseVignetteIntensity: 0.37
   baseVignetteSmoothness: 0.4
   baseVignetteColor: {r: 0, g: 0, b: 0, a: 1}
   hiddenVignetteIntensity: 0.45
