@@ -2906,17 +2906,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7672828533023560038, guid: bc6d837d91e667147a257890267bbf26, type: 3}
   m_PrefabInstance: {fileID: 5445190877714509161}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &911130299 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7919050939102121772, guid: bc6d837d91e667147a257890267bbf26, type: 3}
-  m_PrefabInstance: {fileID: 5445190877714509161}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 807a2184c9e50544cb0a80e37a3b8d2c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Player
 --- !u!95 &911130300 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 4696034031091495024, guid: bc6d837d91e667147a257890267bbf26, type: 3}
@@ -4928,59 +4917,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f3fb5643b2f95294e912e52748fdb18d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VignetteController
-  postProcessVolume: {fileID: 436125787}
-  player: {fileID: 911130299}
-  baseVignetteIntensity: 0.37
-  baseVignetteSmoothness: 0.4
-  baseVignetteColor: {r: 0, g: 0, b: 0, a: 1}
-  hiddenVignetteIntensity: 0.5
-  exhaustedVignetteIntensity: 0.55
-  scaredVignetteIntensity: 0.6
-  panicVignetteIntensity: 0.7
-  hiddenVignetteColor: {r: 0.05, g: 0.02, b: 0.1, a: 1}
-  exhaustedVignetteColor: {r: 0.2, g: 0.05, b: 0.05, a: 1}
-  fearVignetteColor: {r: 0.1, g: 0.02, b: 0.15, a: 1}
-  panicVignetteColor: {r: 0.3, g: 0.02, b: 0.08, a: 1}
-  baseSaturation: -10
-  baseContrast: 5
-  baseExposure: 0
-  fearSaturation: -35
-  panicSaturation: -50
-  fearContrast: 15
-  panicContrast: 25
-  fearExposure: -0.2
-  panicExposure: -0.4
-  exhaustedSaturation: -25
-  exhaustedContrast: 10
-  enableChromaticAberration: 1
-  baseChromaticIntensity: 0
-  scaredChromaticIntensity: 0.15
-  panicChromaticIntensity: 0.5
-  damageChromaticIntensity: 0.8
-  enableLensDistortion: 1
-  baseLensDistortion: 0
-  panicLensDistortion: -0.3
-  hiddenLensDistortion: -0.1
-  enableFilmGrain: 1
-  baseGrainIntensity: 0.15
-  fearGrainIntensity: 0.35
-  panicGrainIntensity: 0.5
-  enableBloom: 1
-  baseBloomIntensity: 0.5
-  fearBloomIntensity: 0.3
-  panicBloomIntensity: 0.8
-  enablePulse: 1
-  normalPulseSpeed: 1
-  nervousPulseSpeed: 1.5
-  scaredPulseSpeed: 2.5
-  panicPulseSpeed: 5
-  basePulseIntensity: 0.02
-  fearPulseIntensity: 0.05
-  panicPulseIntensity: 0.12
-  normalTransitionSpeed: 3
-  fastTransitionSpeed: 8
-  flashTransitionSpeed: 20
-  showDebugInfo: 0
 --- !u!1 &1387508327
 GameObject:
   m_ObjectHideFlags: 0
@@ -5848,6 +5784,96 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &1557843771
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1557843773}
+  - component: {fileID: 1557843772}
+  m_Layer: 0
+  m_Name: VentanaHospital_0
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!212 &1557843772
+SpriteRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1557843771}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: -2
+  m_Sprite: {fileID: -1023377736081426533, guid: 73a5975dcdcaf324c9b77e5a2d8ee772, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 4.91, y: 2.97}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0
+  m_SpriteSortPoint: 0
+--- !u!4 &1557843773
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1557843771}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.54, y: 2.72, z: 0.83}
+  m_LocalScale: {x: 0.74367, y: 0.74367, z: 0.74367}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1558082263
 GameObject:
   m_ObjectHideFlags: 0
@@ -7632,3 +7658,4 @@ SceneRoots:
   - {fileID: 1432602258}
   - {fileID: 436125788}
   - {fileID: 2146961078}
+  - {fileID: 1557843773}
