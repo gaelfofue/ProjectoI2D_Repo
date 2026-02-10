@@ -3,6 +3,9 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using System.Collections;
 
+/// <summary>
+/// VERSIÓN MEJORADA - Viñeta dinámica continua basada en stamina y miedo
+/// </summary>
 public class VignetteController : MonoBehaviour
 {
     #region REFERENCES
@@ -17,44 +20,45 @@ public class VignetteController : MonoBehaviour
     [SerializeField] private float baseVignetteSmoothness = 0.4f;
     [SerializeField] private Color baseVignetteColor = Color.black;
 
-    [Header("Vignette - States")]
+    [Header("Vignette - Dynamic Ranges")]
+    [Tooltip("Intensidad máxima cuando stamina = 0")]
+    [SerializeField] private float staminaDepleteIntensity = 0.65f;
+    [Tooltip("Intensidad máxima cuando fear = 100%")]
+    [SerializeField] private float maxFearIntensity = 0.75f;
+    [Tooltip("Intensidad cuando está escondido")]
     [SerializeField] private float hiddenVignetteIntensity = 0.5f;
-    [SerializeField] private float exhaustedVignetteIntensity = 0.55f;
-    [SerializeField] private float scaredVignetteIntensity = 0.6f;
-    [SerializeField] private float panicVignetteIntensity = 0.7f;
 
     [Header("Vignette - Colors")]
     [SerializeField] private Color hiddenVignetteColor = new Color(0.05f, 0.02f, 0.1f);
-    [SerializeField] private Color exhaustedVignetteColor = new Color(0.2f, 0.05f, 0.05f);
-    [SerializeField] private Color fearVignetteColor = new Color(0.1f, 0.02f, 0.15f);
-    [SerializeField] private Color panicVignetteColor = new Color(0.3f, 0.02f, 0.08f);
+    [SerializeField] private Color lowStaminaColor = new Color(0.2f, 0.05f, 0.05f); // Rojo oscuro
+    [SerializeField] private Color fearColor = new Color(0.1f, 0.02f, 0.15f); // Morado oscuro
+    [SerializeField] private Color panicColor = new Color(0.3f, 0.02f, 0.08f); // Rojo-morado
     #endregion
 
     #region COLOR SETTINGS
-    [Header("Color Adjustments - Base")]
+    [Header("Color Adjustments - Dynamic")]
     [SerializeField] private float baseSaturation = -10f;
     [SerializeField] private float baseContrast = 5f;
     [SerializeField] private float baseExposure = 0f;
 
-    [Header("Color Adjustments - Fear")]
-    [SerializeField] private float fearSaturation = -35f;
-    [SerializeField] private float panicSaturation = -50f;
-    [SerializeField] private float fearContrast = 15f;
-    [SerializeField] private float panicContrast = 25f;
-    [SerializeField] private float fearExposure = -0.2f;
-    [SerializeField] private float panicExposure = -0.4f;
+    [Range(-100f, 0f)]
+    [SerializeField] private float maxFearSaturation = -50f;
+    [Range(0f, 50f)]
+    [SerializeField] private float maxFearContrast = 25f;
+    [Range(-1f, 0f)]
+    [SerializeField] private float maxFearExposure = -0.4f;
 
-    [Header("Color Adjustments - Exhausted")]
-    [SerializeField] private float exhaustedSaturation = -25f;
-    [SerializeField] private float exhaustedContrast = 10f;
+    [Range(-100f, 0f)]
+    [SerializeField] private float lowStaminaSaturation = -25f;
+    [Range(0f, 50f)]
+    [SerializeField] private float lowStaminaContrast = 10f;
     #endregion
 
     #region CHROMATIC ABERRATION
     [Header("Chromatic Aberration")]
     [SerializeField] private bool enableChromaticAberration = true;
     [SerializeField] private float baseChromaticIntensity = 0f;
-    [SerializeField] private float scaredChromaticIntensity = 0.15f;
-    [SerializeField] private float panicChromaticIntensity = 0.5f;
+    [SerializeField] private float maxFearChromaticIntensity = 0.5f;
     [SerializeField] private float damageChromaticIntensity = 0.8f;
     #endregion
 
@@ -62,7 +66,7 @@ public class VignetteController : MonoBehaviour
     [Header("Lens Distortion")]
     [SerializeField] private bool enableLensDistortion = true;
     [SerializeField] private float baseLensDistortion = 0f;
-    [SerializeField] private float panicLensDistortion = -0.3f;
+    [SerializeField] private float maxFearLensDistortion = -0.3f;
     [SerializeField] private float hiddenLensDistortion = -0.1f;
     #endregion
 
@@ -70,8 +74,8 @@ public class VignetteController : MonoBehaviour
     [Header("Film Grain")]
     [SerializeField] private bool enableFilmGrain = true;
     [SerializeField] private float baseGrainIntensity = 0.15f;
-    [SerializeField] private float fearGrainIntensity = 0.35f;
-    [SerializeField] private float panicGrainIntensity = 0.5f;
+    [SerializeField] private float maxFearGrainIntensity = 0.5f;
+    [SerializeField] private float lowStaminaGrainIntensity = 0.35f;
     #endregion
 
     #region BLOOM
@@ -86,12 +90,9 @@ public class VignetteController : MonoBehaviour
     [Header("Pulse Effect - Heartbeat Visual")]
     [SerializeField] private bool enablePulse = true;
     [SerializeField] private float normalPulseSpeed = 1f;
-    [SerializeField] private float nervousPulseSpeed = 1.5f;
-    [SerializeField] private float scaredPulseSpeed = 2.5f;
-    [SerializeField] private float panicPulseSpeed = 5f;
+    [SerializeField] private float maxPulseSpeed = 5f;
     [SerializeField] private float basePulseIntensity = 0.02f;
-    [SerializeField] private float fearPulseIntensity = 0.05f;
-    [SerializeField] private float panicPulseIntensity = 0.12f;
+    [SerializeField] private float maxPulseIntensity = 0.12f;
     #endregion
 
     #region TRANSITION
@@ -197,7 +198,7 @@ public class VignetteController : MonoBehaviour
         currentTransitionSpeed = normalTransitionSpeed;
         isInitialized = true;
 
-        Debug.Log("[VignetteController] V2.0 Inicializado correctamente");
+        Debug.Log("[VignetteController] Versión DINÁMICA inicializada correctamente");
     }
 
     private void InitializeVignette()
@@ -210,14 +211,12 @@ public class VignetteController : MonoBehaviour
 
         vignette.active = true;
         vignette.intensity.overrideState = true;
-        vignette.color.overrideState = true;
         vignette.smoothness.overrideState = true;
-        vignette.rounded.overrideState = true;
+        vignette.color.overrideState = true;
 
         vignette.intensity.value = baseVignetteIntensity;
-        vignette.color.value = baseVignetteColor;
         vignette.smoothness.value = baseVignetteSmoothness;
-        vignette.rounded.value = true;
+        vignette.color.value = baseVignetteColor;
     }
 
     private void InitializeColorAdjustments()
@@ -265,12 +264,8 @@ public class VignetteController : MonoBehaviour
 
         filmGrain.active = true;
         filmGrain.intensity.overrideState = true;
-        filmGrain.response.overrideState = true;
-        filmGrain.type.overrideState = true;
-
-        filmGrain.type.value = FilmGrainLookup.Thin1;
         filmGrain.intensity.value = baseGrainIntensity;
-        filmGrain.response.value = 0.8f;
+        filmGrain.type.value = FilmGrainLookup.Medium1;
     }
 
     private void InitializeBloom()
@@ -284,8 +279,8 @@ public class VignetteController : MonoBehaviour
         }
 
         bloom.active = true;
-        bloom.intensity.overrideState = true;
         bloom.threshold.overrideState = true;
+        bloom.intensity.overrideState = true;
         bloom.scatter.overrideState = true;
 
         bloom.threshold.value = 0.9f;
@@ -322,123 +317,136 @@ public class VignetteController : MonoBehaviour
     }
     #endregion
 
-    #region CALCULATE VALUES
+    #region CALCULATE VALUES - VERSIÓN DINÁMICA MEJORADA
     private void CalculateTargetValues()
     {
-        // Obtener estados del jugador
-        float staminaPercent = player.GetStaminaNormalized();
-        float fearPercent = player.GetFearNormalized();
+        // Obtener valores CONTINUOS del jugador
+        float stamina = player.GetStaminaNormalized(); // 0 = sin stamina, 1 = llena
+        float fear = player.GetFearNormalized();       // 0 = sin miedo, 1 = pánico total
         bool isHidden = player.IsHidden;
-        bool isExhausted = player.IsExhausted;
-        bool isPanicking = player.IsPanicking;
-        bool isScared = player.IsScared;
 
-        // Determinar velocidad de transición
-        currentTransitionSpeed = isPanicking ? fastTransitionSpeed : normalTransitionSpeed;
+        // Determinar velocidad de transición (más rápida si hay pánico)
+        currentTransitionSpeed = (fear > 0.9f) ? fastTransitionSpeed : normalTransitionSpeed;
 
-        // Calcular cada grupo de efectos
-        CalculateVignetteValues(staminaPercent, fearPercent, isHidden, isExhausted, isPanicking, isScared);
-        CalculateColorValues(staminaPercent, fearPercent, isHidden, isExhausted, isPanicking, isScared);
-        CalculateEffectValues(staminaPercent, fearPercent, isHidden, isExhausted, isPanicking, isScared);
+        // === CÁLCULO DINÁMICO DE VIÑETA ===
+        CalculateDynamicVignette(stamina, fear, isHidden);
+        CalculateDynamicColor(stamina, fear, isHidden);
+        CalculateDynamicEffects(stamina, fear, isHidden);
 
         // Añadir pulso si está habilitado
         if (enablePulse)
         {
-            ApplyPulseEffect(staminaPercent, fearPercent, isExhausted, isPanicking, isScared);
+            ApplyDynamicPulse(stamina, fear);
         }
     }
 
-    private void CalculateVignetteValues(float stamina, float fear, bool hidden, bool exhausted, bool panic, bool scared)
+    /// <summary>
+    /// Calcula la viñeta de manera CONTINUA basándose en stamina y fear
+    /// </summary>
+    private void CalculateDynamicVignette(float stamina, float fear, bool hidden)
     {
         // === INTENSIDAD BASE ===
         float intensity = baseVignetteIntensity;
         Color color = baseVignetteColor;
         float smoothness = baseVignetteSmoothness;
 
-        // Estado: Escondido
-        if (hidden)
+        // === CONTRIBUCIÓN DE STAMINA (gradual e inversa) ===
+        // Stamina baja = más viñeta
+        float staminaContribution = 0f;
+        if (stamina < 1f)
         {
-            intensity = Mathf.Max(intensity, hiddenVignetteIntensity);
-            color = Color.Lerp(color, hiddenVignetteColor, 0.7f);
-            smoothness = 0.3f; // Más cerrado cuando está escondido
+            // Curvatura: empieza suave, se acelera al final
+            float staminaFactor = 1f - stamina; // 0 = llena, 1 = vacía
+            staminaFactor = Mathf.Pow(staminaFactor, 1.5f); // Curva exponencial
+            staminaContribution = staminaFactor * (staminaDepleteIntensity - baseVignetteIntensity);
+        }
 
-            // Añadir miedo encima del escondite
-            if (fear > 0.3f)
+        // === CONTRIBUCIÓN DE FEAR (gradual) ===
+        // Fear alto = más viñeta
+        float fearContribution = 0f;
+        if (fear > 0f)
+        {
+            // Curva suave al principio, agresiva al final
+            float fearFactor = Mathf.Pow(fear, 1.3f);
+            fearContribution = fearFactor * (maxFearIntensity - baseVignetteIntensity);
+        }
+
+        // === COMBINAR CONTRIBUCIONES ===
+        // No usar "else if" - SUMAR los efectos
+        intensity = baseVignetteIntensity + staminaContribution + fearContribution;
+
+        // === COLOR DINÁMICO ===
+        // Mezclar colores basándose en qué está afectando más
+        if (staminaContribution > 0f || fearContribution > 0f)
+        {
+            float totalContribution = staminaContribution + fearContribution;
+
+            if (totalContribution > 0f)
             {
-                float fearInfluence = (fear - 0.3f) / 0.7f;
-                intensity = Mathf.Lerp(intensity, scaredVignetteIntensity, fearInfluence);
-                color = Color.Lerp(color, fearVignetteColor, fearInfluence * 0.5f);
+                float staminaWeight = staminaContribution / totalContribution;
+                float fearWeight = fearContribution / totalContribution;
+
+                // Mezcla ponderada de colores
+                Color mixedColor = lowStaminaColor * staminaWeight + fearColor * fearWeight;
+
+                // Si está en pánico extremo (>90%), mezclamos con color de pánico
+                if (fear > 0.9f)
+                {
+                    float panicBlend = (fear - 0.9f) * 10f; // 0 a 1
+                    mixedColor = Color.Lerp(mixedColor, panicColor, panicBlend);
+                }
+
+                // Aplicar la mezcla
+                float mixStrength = Mathf.Min(totalContribution / maxFearIntensity, 1f);
+                color = Color.Lerp(baseVignetteColor, mixedColor, mixStrength);
             }
         }
 
-        // Estado: Pánico (máxima prioridad)
-        if (panic)
+        // === ESTADO: ESCONDIDO ===
+        if (hidden)
         {
-            intensity = panicVignetteIntensity;
-            color = panicVignetteColor;
-            smoothness = 0.25f;
-        }
-        // Estado: Asustada
-        else if (scared)
-        {
-            intensity = Mathf.Max(intensity, scaredVignetteIntensity);
-            color = Color.Lerp(color, fearVignetteColor, 0.6f);
-            smoothness = 0.3f;
-        }
-        // Estado: Agotada
-        else if (exhausted)
-        {
-            intensity = Mathf.Max(intensity, exhaustedVignetteIntensity);
-            color = Color.Lerp(color, exhaustedVignetteColor, 0.5f);
-        }
-        // Stamina baja
-        else if (stamina < 0.3f)
-        {
-            float exhaustionFactor = 1f - (stamina / 0.3f);
-            intensity = Mathf.Lerp(intensity, exhaustedVignetteIntensity * 0.8f, exhaustionFactor);
-            color = Color.Lerp(color, exhaustedVignetteColor, exhaustionFactor * 0.3f);
+            // Añadir intensidad extra cuando está escondido
+            intensity = Mathf.Max(intensity, hiddenVignetteIntensity);
+            color = Color.Lerp(color, hiddenVignetteColor, 0.5f);
+            smoothness = 0.3f; // Más cerrado
         }
 
-        targetVignetteIntensity = Mathf.Clamp(intensity, 0f, 0.8f);
+        // === APLICAR LÍMITES ===
+        targetVignetteIntensity = Mathf.Clamp(intensity, 0f, 0.85f);
         targetVignetteColor = color;
         targetVignetteSmoothness = smoothness;
     }
 
-    private void CalculateColorValues(float stamina, float fear, bool hidden, bool exhausted, bool panic, bool scared)
+    /// <summary>
+    /// Calcula ajustes de color dinámicos
+    /// </summary>
+    private void CalculateDynamicColor(float stamina, float fear, bool hidden)
     {
-        // === SATURACIÓN ===
         float saturation = baseSaturation;
         float contrast = baseContrast;
         float exposure = baseExposure;
 
-        if (panic)
+        // === CONTRIBUCIÓN DE FEAR ===
+        if (fear > 0f)
         {
-            saturation = panicSaturation;
-            contrast = panicContrast;
-            exposure = panicExposure;
+            saturation = Mathf.Lerp(baseSaturation, maxFearSaturation, fear);
+            contrast = Mathf.Lerp(baseContrast, maxFearContrast, fear);
+            exposure = Mathf.Lerp(baseExposure, maxFearExposure, fear);
         }
-        else if (scared)
+
+        // === CONTRIBUCIÓN DE STAMINA ===
+        // Solo afecta si la stamina está baja Y el miedo no es dominante
+        if (stamina < 0.5f && fear < 0.5f)
         {
-            float t = (fear - 0.6f) / 0.3f; // 0.6 a 0.9
-            saturation = Mathf.Lerp(fearSaturation * 0.5f, fearSaturation, t);
-            contrast = Mathf.Lerp(baseContrast, fearContrast, t);
-            exposure = Mathf.Lerp(baseExposure, fearExposure, t);
+            float staminaFactor = 1f - (stamina * 2f); // 0.5 a 0 → 0 a 1
+            saturation = Mathf.Lerp(saturation, lowStaminaSaturation, staminaFactor * 0.5f);
+            contrast = Mathf.Lerp(contrast, lowStaminaContrast, staminaFactor * 0.3f);
         }
-        else if (exhausted)
+
+        // === SI ESTÁ ESCONDIDO Y ASUSTADO ===
+        if (hidden && fear > 0.3f)
         {
-            saturation = exhaustedSaturation;
-            contrast = exhaustedContrast;
-        }
-        else if (hidden && fear > 0.3f)
-        {
-            // Desaturar gradualmente mientras está escondida
-            saturation = Mathf.Lerp(baseSaturation, fearSaturation, fear);
-            contrast = Mathf.Lerp(baseContrast, fearContrast * 0.5f, fear);
-        }
-        else if (stamina < 0.3f)
-        {
-            float t = 1f - (stamina / 0.3f);
-            saturation = Mathf.Lerp(baseSaturation, exhaustedSaturation, t);
+            saturation = Mathf.Lerp(saturation, maxFearSaturation, fear * 0.7f);
         }
 
         targetSaturation = saturation;
@@ -446,83 +454,67 @@ public class VignetteController : MonoBehaviour
         targetExposure = exposure;
     }
 
-    private void CalculateEffectValues(float stamina, float fear, bool hidden, bool exhausted, bool panic, bool scared)
+    /// <summary>
+    /// Calcula efectos adicionales dinámicos
+    /// </summary>
+    private void CalculateDynamicEffects(float stamina, float fear, bool hidden)
     {
         // === CHROMATIC ABERRATION ===
         if (enableChromaticAberration && chromaticAberration != null)
         {
-            if (panic)
-            {
-                targetChromaticIntensity = panicChromaticIntensity;
-            }
-            else if (scared)
-            {
-                targetChromaticIntensity = scaredChromaticIntensity;
-            }
-            else if (fear > 0.5f)
-            {
-                targetChromaticIntensity = Mathf.Lerp(0, scaredChromaticIntensity, (fear - 0.5f) * 2f);
-            }
-            else
-            {
-                targetChromaticIntensity = baseChromaticIntensity;
-            }
+            // Aumenta con el miedo
+            targetChromaticIntensity = Mathf.Lerp(
+                baseChromaticIntensity,
+                maxFearChromaticIntensity,
+                Mathf.Pow(fear, 1.2f) // Curva suave
+            );
         }
 
         // === LENS DISTORTION ===
         if (enableLensDistortion && lensDistortion != null)
         {
-            if (panic)
+            if (hidden)
             {
-                targetLensDistortion = panicLensDistortion;
-            }
-            else if (hidden && fear > 0.5f)
-            {
-                targetLensDistortion = Mathf.Lerp(hiddenLensDistortion, panicLensDistortion * 0.5f, fear);
-            }
-            else if (hidden)
-            {
-                targetLensDistortion = hiddenLensDistortion;
+                // Distorsión cuando está escondido, más fuerte si tiene miedo
+                targetLensDistortion = Mathf.Lerp(
+                    hiddenLensDistortion,
+                    maxFearLensDistortion,
+                    fear
+                );
             }
             else
             {
-                targetLensDistortion = baseLensDistortion;
+                // Distorsión gradual con miedo extremo
+                targetLensDistortion = Mathf.Lerp(
+                    baseLensDistortion,
+                    maxFearLensDistortion,
+                    Mathf.Max(0f, fear - 0.7f) * 3.33f // Solo >70% fear
+                );
             }
         }
 
         // === FILM GRAIN ===
         if (enableFilmGrain && filmGrain != null)
         {
-            if (panic)
-            {
-                targetGrainIntensity = panicGrainIntensity;
-            }
-            else if (scared || fear > 0.5f)
-            {
-                targetGrainIntensity = Mathf.Lerp(baseGrainIntensity, fearGrainIntensity, fear);
-            }
-            else if (exhausted || stamina < 0.3f)
-            {
-                targetGrainIntensity = Mathf.Lerp(baseGrainIntensity, fearGrainIntensity * 0.7f, 1f - stamina);
-            }
-            else
-            {
-                targetGrainIntensity = baseGrainIntensity;
-            }
+            float grainFromFear = fear * maxFearGrainIntensity;
+            float grainFromStamina = (1f - stamina) * lowStaminaGrainIntensity * 0.5f;
+
+            targetGrainIntensity = baseGrainIntensity + grainFromFear + grainFromStamina;
+            targetGrainIntensity = Mathf.Clamp(targetGrainIntensity, baseGrainIntensity, maxFearGrainIntensity);
         }
 
         // === BLOOM ===
         if (enableBloom && bloom != null)
         {
-            if (panic)
+            if (fear > 0.9f)
             {
-                // Bloom alto en pánico para efecto de "ver estrellas"
+                // Bloom explosivo en pánico
                 targetBloomIntensity = panicBloomIntensity;
             }
-            else if (scared)
+            else if (fear > 0.5f)
             {
-                // Reducir bloom cuando está asustada (visión más enfocada)
-                targetBloomIntensity = fearBloomIntensity;
+                // Reducir bloom con miedo (visión más enfocada)
+                targetBloomIntensity = Mathf.Lerp(baseBloomIntensity, fearBloomIntensity, (fear - 0.5f) * 2f);
             }
             else
             {
@@ -531,51 +523,21 @@ public class VignetteController : MonoBehaviour
         }
     }
 
-    private void ApplyPulseEffect(float stamina, float fear, bool exhausted, bool panic, bool scared)
+    /// <summary>
+    /// Pulso dinámico del corazón
+    /// </summary>
+    private void ApplyDynamicPulse(float stamina, float fear)
     {
-        float pulseSpeed = normalPulseSpeed;
-        float pulseAmount = 0f;
+        // Velocidad del pulso aumenta con miedo y baja stamina
+        float stressFactor = Mathf.Max(fear, 1f - stamina);
+        float pulseSpeed = Mathf.Lerp(normalPulseSpeed, maxPulseSpeed, stressFactor);
+        float pulseAmount = Mathf.Lerp(basePulseIntensity, maxPulseIntensity, stressFactor);
 
-        // Determinar velocidad e intensidad del pulso
-        if (panic)
-        {
-            pulseSpeed = panicPulseSpeed;
-            pulseAmount = panicPulseIntensity;
-        }
-        else if (scared)
-        {
-            pulseSpeed = scaredPulseSpeed;
-            pulseAmount = fearPulseIntensity;
-        }
-        else if (fear > 0.3f)
-        {
-            pulseSpeed = nervousPulseSpeed;
-            pulseAmount = Mathf.Lerp(basePulseIntensity, fearPulseIntensity, fear);
-        }
-        else if (exhausted || stamina < 0.3f)
-        {
-            pulseSpeed = nervousPulseSpeed;
-            pulseAmount = basePulseIntensity * 1.5f;
-        }
+        // Calcular onda sinusoidal
+        float pulse = Mathf.Sin(pulseTimer * pulseSpeed * Mathf.PI * 2f) * pulseAmount;
 
-        if (pulseAmount > 0)
-        {
-            // Pulso sinusoidal (simula latido)
-            float pulse = Mathf.Sin(pulseTimer * pulseSpeed * Mathf.PI * 2f);
-
-            // Convertir a pulso tipo latido (más pronunciado en un lado)
-            pulse = (pulse + 1f) * 0.5f; // Normalizar a 0-1
-            pulse = Mathf.Pow(pulse, 2f); // Hacer más pronunciado
-
-            // Aplicar a vignette
-            targetVignetteIntensity += pulse * pulseAmount;
-
-            // También afectar ligeramente chromatic en pánico
-            if (panic && enableChromaticAberration)
-            {
-                targetChromaticIntensity += pulse * 0.1f;
-            }
-        }
+        // Aplicar al viñeta
+        targetVignetteIntensity += pulse;
     }
     #endregion
 
@@ -583,266 +545,106 @@ public class VignetteController : MonoBehaviour
     private void ApplyEffects()
     {
         float deltaSpeed = currentTransitionSpeed * Time.deltaTime;
-        float speed = isFlashing ? flashTransitionSpeed * Time.deltaTime : deltaSpeed;
 
-        // === VIGNETTE ===
+        // Aplicar Vignette
         if (vignette != null)
         {
-            vignette.intensity.value = Mathf.Lerp(vignette.intensity.value, targetVignetteIntensity, speed);
-            vignette.color.value = Color.Lerp(vignette.color.value, targetVignetteColor, speed);
-            vignette.smoothness.value = Mathf.Lerp(vignette.smoothness.value, targetVignetteSmoothness, speed);
+            vignette.intensity.value = Mathf.Lerp(vignette.intensity.value, targetVignetteIntensity, deltaSpeed);
+            vignette.smoothness.value = Mathf.Lerp(vignette.smoothness.value, targetVignetteSmoothness, deltaSpeed);
+            vignette.color.value = Color.Lerp(vignette.color.value, targetVignetteColor, deltaSpeed);
         }
 
-        // === COLOR ADJUSTMENTS ===
+        // Aplicar Color Adjustments
         if (colorAdjustments != null)
         {
-            colorAdjustments.saturation.value = Mathf.Lerp(colorAdjustments.saturation.value, targetSaturation, speed);
-            colorAdjustments.contrast.value = Mathf.Lerp(colorAdjustments.contrast.value, targetContrast, speed);
-            colorAdjustments.postExposure.value = Mathf.Lerp(colorAdjustments.postExposure.value, targetExposure, speed);
+            colorAdjustments.saturation.value = Mathf.Lerp(colorAdjustments.saturation.value, targetSaturation, deltaSpeed);
+            colorAdjustments.contrast.value = Mathf.Lerp(colorAdjustments.contrast.value, targetContrast, deltaSpeed);
+            colorAdjustments.postExposure.value = Mathf.Lerp(colorAdjustments.postExposure.value, targetExposure, deltaSpeed);
         }
 
-        // === CHROMATIC ABERRATION ===
-        if (chromaticAberration != null && enableChromaticAberration)
+        // Aplicar Chromatic Aberration
+        if (enableChromaticAberration && chromaticAberration != null)
         {
-            chromaticAberration.intensity.value = Mathf.Lerp(chromaticAberration.intensity.value, targetChromaticIntensity, speed);
+            chromaticAberration.intensity.value = Mathf.Lerp(chromaticAberration.intensity.value, targetChromaticIntensity, deltaSpeed);
         }
 
-        // === LENS DISTORTION ===
-        if (lensDistortion != null && enableLensDistortion)
+        // Aplicar Lens Distortion
+        if (enableLensDistortion && lensDistortion != null)
         {
-            lensDistortion.intensity.value = Mathf.Lerp(lensDistortion.intensity.value, targetLensDistortion, speed);
+            lensDistortion.intensity.value = Mathf.Lerp(lensDistortion.intensity.value, targetLensDistortion, deltaSpeed);
         }
 
-        // === FILM GRAIN ===
-        if (filmGrain != null && enableFilmGrain)
+        // Aplicar Film Grain
+        if (enableFilmGrain && filmGrain != null)
         {
-            filmGrain.intensity.value = Mathf.Lerp(filmGrain.intensity.value, targetGrainIntensity, speed);
+            filmGrain.intensity.value = Mathf.Lerp(filmGrain.intensity.value, targetGrainIntensity, deltaSpeed);
         }
 
-        // === BLOOM ===
-        if (bloom != null && enableBloom)
+        // Aplicar Bloom
+        if (enableBloom && bloom != null)
         {
-            bloom.intensity.value = Mathf.Lerp(bloom.intensity.value, targetBloomIntensity, speed);
+            bloom.intensity.value = Mathf.Lerp(bloom.intensity.value, targetBloomIntensity, deltaSpeed);
         }
     }
     #endregion
 
     #region FLASH EFFECTS
-    /// <summary>
-    /// Flash de daño - rojo intenso con chromatic aberration
-    /// </summary>
-    public void DamageFlash()
+    public void TriggerDamageFlash()
     {
-        StartCoroutine(DamageFlashRoutine());
+        StartCoroutine(DamageFlashCoroutine());
     }
 
-    /// <summary>
-    /// Flash de muerte - fade a negro total
-    /// </summary>
-    public void DeathFlash()
+    public void TriggerDiscoveryFlash()
     {
-        StartCoroutine(DeathFlashRoutine());
+        StartCoroutine(DiscoveryFlashCoroutine());
     }
 
-    /// <summary>
-    /// Flash de pánico - distorsión y colores intensos
-    /// </summary>
-    public void PanicFlash()
+    public void TriggerDeathFlash()
     {
-        StartCoroutine(PanicFlashRoutine());
+        StartCoroutine(DeathFlashCoroutine());
     }
 
-    /// <summary>
-    /// Flash de descubrimiento - shock visual
-    /// </summary>
-    public void DiscoveryFlash()
+    private IEnumerator DamageFlashCoroutine()
     {
-        StartCoroutine(DiscoveryFlashRoutine());
-    }
-
-    private IEnumerator DamageFlashRoutine()
-    {
-        if (vignette == null) yield break;
-
         isFlashing = true;
 
-        // Guardar valores
-        float originalIntensity = vignette.intensity.value;
-        Color originalColor = vignette.color.value;
-        float originalChromatic = chromaticAberration?.intensity.value ?? 0f;
+        // Flash rojo intenso
+        targetVignetteIntensity = 0.9f;
+        targetVignetteColor = Color.red;
+        if (enableChromaticAberration) targetChromaticIntensity = damageChromaticIntensity;
 
-        // Flash inmediato
-        vignette.intensity.value = 0.75f;
-        vignette.color.value = new Color(0.6f, 0f, 0f);
-        if (chromaticAberration != null)
-            chromaticAberration.intensity.value = damageChromaticIntensity;
-
-        yield return new WaitForSecondsRealtime(0.1f);
-
-        // Fade out rápido
-        float elapsed = 0f;
-        float duration = 0.3f;
-
-        while (elapsed < duration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float t = elapsed / duration;
-
-            vignette.intensity.value = Mathf.Lerp(0.75f, originalIntensity, t);
-            vignette.color.value = Color.Lerp(new Color(0.6f, 0f, 0f), originalColor, t);
-            if (chromaticAberration != null)
-                chromaticAberration.intensity.value = Mathf.Lerp(damageChromaticIntensity, originalChromatic, t);
-
-            yield return null;
-        }
+        yield return new WaitForSeconds(0.1f);
 
         isFlashing = false;
     }
 
-    private IEnumerator DeathFlashRoutine()
+    private IEnumerator DiscoveryFlashCoroutine()
     {
-        if (vignette == null) yield break;
-
         isFlashing = true;
 
-        // Flash rojo inicial
-        vignette.intensity.value = 0.8f;
-        vignette.color.value = new Color(0.5f, 0f, 0f);
+        targetVignetteIntensity = 0.85f;
+        targetVignetteColor = new Color(1f, 0.5f, 0f); // Naranja
+        if (enableChromaticAberration) targetChromaticIntensity = damageChromaticIntensity * 0.6f;
 
-        if (colorAdjustments != null)
-        {
-            colorAdjustments.saturation.value = -100f;
-            colorAdjustments.postExposure.value = -0.5f;
-        }
-
-        yield return new WaitForSecondsRealtime(0.15f);
-
-        // Fade a negro
-        float elapsed = 0f;
-        float duration = 0.8f;
-
-        while (elapsed < duration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float t = elapsed / duration;
-
-            vignette.intensity.value = Mathf.Lerp(0.8f, 1f, t);
-            vignette.color.value = Color.Lerp(new Color(0.5f, 0f, 0f), Color.black, t);
-
-            if (colorAdjustments != null)
-                colorAdjustments.postExposure.value = Mathf.Lerp(-0.5f, -2f, t);
-
-            yield return null;
-        }
-
-        // Mantener negro
-        vignette.intensity.value = 1f;
-        vignette.color.value = Color.black;
+        yield return new WaitForSeconds(0.2f);
 
         isFlashing = false;
     }
 
-    private IEnumerator PanicFlashRoutine()
+    private IEnumerator DeathFlashCoroutine()
     {
-        if (vignette == null) yield break;
-
         isFlashing = true;
 
-        float originalIntensity = vignette.intensity.value;
-        Color originalColor = vignette.color.value;
-        float originalLens = lensDistortion?.intensity.value ?? 0f;
+        // Flash blanco cegador que se vuelve negro
+        targetVignetteIntensity = 1f;
+        targetVignetteColor = Color.white;
+        currentTransitionSpeed = flashTransitionSpeed;
 
-        // Pulsos rápidos
-        for (int i = 0; i < 3; i++)
-        {
-            vignette.intensity.value = 0.7f;
-            vignette.color.value = panicVignetteColor;
-            if (lensDistortion != null)
-                lensDistortion.intensity.value = -0.4f;
+        yield return new WaitForSeconds(0.15f);
 
-            yield return new WaitForSecondsRealtime(0.08f);
+        targetVignetteColor = Color.black;
 
-            vignette.intensity.value = 0.5f;
-            if (lensDistortion != null)
-                lensDistortion.intensity.value = -0.2f;
-
-            yield return new WaitForSecondsRealtime(0.08f);
-        }
-
-        // Volver gradualmente
-        float elapsed = 0f;
-        float duration = 0.3f;
-
-        while (elapsed < duration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float t = elapsed / duration;
-
-            vignette.intensity.value = Mathf.Lerp(0.5f, originalIntensity, t);
-            vignette.color.value = Color.Lerp(panicVignetteColor, originalColor, t);
-            if (lensDistortion != null)
-                lensDistortion.intensity.value = Mathf.Lerp(-0.2f, originalLens, t);
-
-            yield return null;
-        }
-
-        isFlashing = false;
-    }
-
-    private IEnumerator DiscoveryFlashRoutine()
-    {
-        if (vignette == null) yield break;
-
-        isFlashing = true;
-
-        float originalIntensity = vignette.intensity.value;
-        Color originalColor = vignette.color.value;
-        float originalExposure = colorAdjustments?.postExposure.value ?? 0f;
-
-        // Flash blanco (shock)
-        vignette.intensity.value = 0.3f;
-        vignette.color.value = Color.white;
-        if (colorAdjustments != null)
-            colorAdjustments.postExposure.value = 1f;
-        if (chromaticAberration != null)
-            chromaticAberration.intensity.value = 0.6f;
-
-        yield return new WaitForSecondsRealtime(0.05f);
-
-        // Transición a rojo
-        float elapsed = 0f;
-        while (elapsed < 0.15f)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float t = elapsed / 0.15f;
-
-            vignette.color.value = Color.Lerp(Color.white, new Color(0.7f, 0f, 0f), t);
-            vignette.intensity.value = Mathf.Lerp(0.3f, 0.75f, t);
-            if (colorAdjustments != null)
-                colorAdjustments.postExposure.value = Mathf.Lerp(1f, -0.3f, t);
-
-            yield return null;
-        }
-
-        // Mantener rojo
-        yield return new WaitForSecondsRealtime(0.2f);
-
-        // Fade out
-        elapsed = 0f;
-        while (elapsed < 0.4f)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float t = elapsed / 0.4f;
-
-            vignette.intensity.value = Mathf.Lerp(0.75f, originalIntensity, t);
-            vignette.color.value = Color.Lerp(new Color(0.7f, 0f, 0f), originalColor, t);
-            if (colorAdjustments != null)
-                colorAdjustments.postExposure.value = Mathf.Lerp(-0.3f, originalExposure, t);
-            if (chromaticAberration != null)
-                chromaticAberration.intensity.value = Mathf.Lerp(0.6f, 0f, t);
-
-            yield return null;
-        }
+        yield return new WaitForSeconds(0.3f);
 
         isFlashing = false;
     }
@@ -860,83 +662,30 @@ public class VignetteController : MonoBehaviour
 
         if (colorAdjustments != null)
         {
-            colorAdjustments.saturation.value = 0f;
-            colorAdjustments.contrast.value = 0f;
-            colorAdjustments.postExposure.value = 0f;
+            colorAdjustments.saturation.value = baseSaturation;
+            colorAdjustments.contrast.value = baseContrast;
+            colorAdjustments.postExposure.value = baseExposure;
         }
 
         if (chromaticAberration != null)
         {
-            chromaticAberration.intensity.value = 0f;
+            chromaticAberration.intensity.value = baseChromaticIntensity;
         }
 
         if (lensDistortion != null)
         {
-            lensDistortion.intensity.value = 0f;
+            lensDistortion.intensity.value = baseLensDistortion;
         }
 
         if (filmGrain != null)
         {
-            filmGrain.intensity.value = 0f;
+            filmGrain.intensity.value = baseGrainIntensity;
         }
 
         if (bloom != null)
         {
             bloom.intensity.value = baseBloomIntensity;
         }
-    }
-    #endregion
-
-    #region PUBLIC METHODS
-    public void ForceUpdate()
-    {
-        if (player != null && isInitialized)
-        {
-            CalculateTargetValues();
-        }
-    }
-
-    public Vignette GetVignette() => vignette;
-    public ColorAdjustments GetColorAdjustments() => colorAdjustments;
-    #endregion
-
-    #region DEBUG
-    [Header("Debug")]
-    [SerializeField] private bool showDebugInfo = false;
-
-    private void OnGUI()
-    {
-        if (!showDebugInfo || player == null || !isInitialized) return;
-
-        GUIStyle style = new GUIStyle(GUI.skin.box);
-        style.fontSize = 12;
-
-        GUILayout.BeginArea(new Rect(10, 10, 280, 320));
-        GUILayout.BeginVertical(style);
-
-        GUILayout.Label("<b>=== VignetteController V2 ===</b>");
-        GUILayout.Space(5);
-
-        GUILayout.Label($"<b>Player State:</b>");
-        GUILayout.Label($"  Stamina: {player.GetStaminaNormalized():P0}");
-        GUILayout.Label($"  Fear: {player.GetFearNormalized():P0}");
-        GUILayout.Label($"  Hidden: {player.IsHidden}");
-        GUILayout.Label($"  Exhausted: {player.IsExhausted}");
-        GUILayout.Label($"  Scared: {player.IsScared}");
-        GUILayout.Label($"  Panicking: {player.IsPanicking}");
-
-        GUILayout.Space(10);
-        GUILayout.Label($"<b>Current Effects:</b>");
-        GUILayout.Label($"  Vignette: {vignette?.intensity.value:F2}");
-        GUILayout.Label($"  Saturation: {colorAdjustments?.saturation.value:F0}");
-        GUILayout.Label($"  Contrast: {colorAdjustments?.contrast.value:F0}");
-        GUILayout.Label($"  Chromatic: {chromaticAberration?.intensity.value:F2}");
-        GUILayout.Label($"  Lens Dist: {lensDistortion?.intensity.value:F2}");
-        GUILayout.Label($"  Film Grain: {filmGrain?.intensity.value:F2}");
-        GUILayout.Label($"  Bloom: {bloom?.intensity.value:F2}");
-
-        GUILayout.EndVertical();
-        GUILayout.EndArea();
     }
     #endregion
 }
