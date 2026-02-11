@@ -589,20 +589,32 @@ public class VignetteController : MonoBehaviour
     #endregion
 
     #region FLASH EFFECTS
-    public void TriggerDamageFlash()
+    // Métodos públicos (compatibilidad con PlayerController y otros scripts)
+    public void DamageFlash()
     {
         StartCoroutine(DamageFlashCoroutine());
     }
 
-    public void TriggerDiscoveryFlash()
+    public void DiscoveryFlash()
     {
         StartCoroutine(DiscoveryFlashCoroutine());
     }
 
-    public void TriggerDeathFlash()
+    public void DeathFlash()
     {
         StartCoroutine(DeathFlashCoroutine());
     }
+
+    public void PanicFlash()
+    {
+        StartCoroutine(PanicFlashCoroutine());
+    }
+
+    // Aliases para compatibilidad (puedes usar cualquiera de los dos nombres)
+    public void TriggerDamageFlash() => DamageFlash();
+    public void TriggerDiscoveryFlash() => DiscoveryFlash();
+    public void TriggerDeathFlash() => DeathFlash();
+    public void TriggerPanicFlash() => PanicFlash();
 
     private IEnumerator DamageFlashCoroutine()
     {
@@ -614,6 +626,20 @@ public class VignetteController : MonoBehaviour
         if (enableChromaticAberration) targetChromaticIntensity = damageChromaticIntensity;
 
         yield return new WaitForSeconds(0.1f);
+
+        isFlashing = false;
+    }
+
+    private IEnumerator PanicFlashCoroutine()
+    {
+        isFlashing = true;
+
+        // Flash morado/rojo (pánico)
+        targetVignetteIntensity = 0.85f;
+        targetVignetteColor = panicColor;
+        if (enableChromaticAberration) targetChromaticIntensity = maxFearChromaticIntensity;
+
+        yield return new WaitForSeconds(0.15f);
 
         isFlashing = false;
     }

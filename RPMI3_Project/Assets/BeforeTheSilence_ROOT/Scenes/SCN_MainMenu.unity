@@ -1211,7 +1211,7 @@ GameObject:
   - component: {fileID: 351927615}
   - component: {fileID: 351927614}
   - component: {fileID: 351927617}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Main Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -3648,6 +3648,7 @@ GameObject:
   - component: {fileID: 1490351957}
   - component: {fileID: 1490351959}
   - component: {fileID: 1490351958}
+  - component: {fileID: 1490351960}
   m_Layer: 0
   m_Name: UI_Manager
   m_TagString: Untagged
@@ -3732,6 +3733,62 @@ MonoBehaviour:
   lobbyScene: 1
   buttonHoverSound: {fileID: 0}
   buttonClickSound: {fileID: 0}
+--- !u!114 &1490351960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1490351956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ae24f0ba91d8ee49b785e4a03f14df7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VignetteController
+  postProcessVolume: {fileID: 0}
+  player: {fileID: 0}
+  baseVignetteIntensity: 1.35
+  baseVignetteSmoothness: 0.4
+  baseVignetteColor: {r: 0, g: 0, b: 0, a: 1}
+  staminaDepleteIntensity: 0.65
+  maxFearIntensity: 0.75
+  hiddenVignetteIntensity: 0.5
+  hiddenVignetteColor: {r: 0.05, g: 0.02, b: 0.1, a: 1}
+  lowStaminaColor: {r: 0.2, g: 0.05, b: 0.05, a: 1}
+  fearColor: {r: 0.1, g: 0.02, b: 0.15, a: 1}
+  panicColor: {r: 0.3, g: 0.02, b: 0.08, a: 1}
+  baseSaturation: -10
+  baseContrast: 5
+  baseExposure: 0
+  maxFearSaturation: -50
+  maxFearContrast: 25
+  maxFearExposure: -0.4
+  lowStaminaSaturation: -25
+  lowStaminaContrast: 10
+  enableChromaticAberration: 1
+  baseChromaticIntensity: 0
+  maxFearChromaticIntensity: 0.5
+  damageChromaticIntensity: 0.8
+  enableLensDistortion: 1
+  baseLensDistortion: 0
+  maxFearLensDistortion: -0.3
+  hiddenLensDistortion: -0.1
+  enableFilmGrain: 1
+  baseGrainIntensity: 0.15
+  maxFearGrainIntensity: 0.5
+  lowStaminaGrainIntensity: 0.35
+  enableBloom: 1
+  baseBloomIntensity: 0.5
+  fearBloomIntensity: 0.3
+  panicBloomIntensity: 0.8
+  enablePulse: 1
+  normalPulseSpeed: 1
+  maxPulseSpeed: 5
+  basePulseIntensity: 0.02
+  maxPulseIntensity: 0.12
+  normalTransitionSpeed: 3
+  fastTransitionSpeed: 8
+  flashTransitionSpeed: 20
 --- !u!1 &1534508558
 GameObject:
   m_ObjectHideFlags: 0
@@ -5086,10 +5143,10 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 351927616}
+  - {fileID: 1124661309}
+  - {fileID: 1030794547}
   - {fileID: 1887425766}
   - {fileID: 1143821964}
   - {fileID: 1534508559}
   - {fileID: 899154742}
   - {fileID: 1490351957}
-  - {fileID: 1124661309}
-  - {fileID: 1030794547}
