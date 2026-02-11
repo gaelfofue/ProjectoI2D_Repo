@@ -317,45 +317,4 @@ public class DarkCorridorSection : MonoBehaviour
         light.intensity = originalIntensity;
     }
     #endregion
-
-    #region DEBUG
-    private void OnGUI()
-    {
-        if (!showDebugGUI || player == null) return;
-
-        GUI.color = Color.white;
-
-        GUILayout.BeginArea(new Rect(10, 10, 350, 200));
-        GUILayout.BeginVertical("box");
-
-        GUILayout.Label("<b>=== DARK CORRIDOR ===</b>");
-        GUILayout.Label($"Estado: <color=yellow>{debugStatus}</color>");
-        GUILayout.Label($"Player X: {player.position.x:F1}");
-        GUILayout.Label($"Spotlight X: {spotlightX} (dist: {Mathf.Abs(player.position.x - spotlightX):F1})");
-        GUILayout.Label($"Prefab: {(monsterPrefab != null ? "✅" : "❌")}");
-        GUILayout.Label($"Spawn: {(monsterSpawnPoint != null ? monsterSpawnPoint.position.ToString() : "❌")}");
-        GUILayout.Label($"End: {(monsterEndPoint != null ? monsterEndPoint.position.ToString() : "❌")}");
-        GUILayout.Label($"Silhouette Color: {silhouetteColor}");
-        GUILayout.Label($"Sorting Order: {monsterSortingOrder}");
-
-        GUILayout.EndVertical();
-        GUILayout.EndArea();
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        // Spotlight
-        Gizmos.color = Color.white;
-        Gizmos.DrawWireSphere(new Vector3(spotlightX, 0, 0), 3f);
-
-        // Ruta del monstruo
-        if (monsterSpawnPoint != null && monsterEndPoint != null)
-        {
-            Gizmos.color = Color.magenta;
-            Gizmos.DrawSphere(monsterSpawnPoint.position, 0.5f);
-            Gizmos.DrawSphere(monsterEndPoint.position, 0.5f);
-            Gizmos.DrawLine(monsterSpawnPoint.position, monsterEndPoint.position);
-        }
-    }
-    #endregion
 }
