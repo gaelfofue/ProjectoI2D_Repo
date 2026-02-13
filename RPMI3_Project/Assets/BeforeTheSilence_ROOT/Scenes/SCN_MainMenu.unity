@@ -3797,7 +3797,7 @@ MonoBehaviour:
   fadeOverlay: {fileID: 2066295717}
   breathingSpeed: 2
   breathingIntensity: 0.05
-  firstLevelScene: SCN_Lobby
+  firstLevelScene: SCN_DarkCorridor
   lobbyScene: 1
   buttonHoverSound: {fileID: 0}
   buttonClickSound: {fileID: 0}
