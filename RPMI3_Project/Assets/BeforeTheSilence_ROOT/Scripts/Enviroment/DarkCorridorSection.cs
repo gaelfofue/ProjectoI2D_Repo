@@ -1,11 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using System.Collections;
 
 public class DarkCorridorSection : MonoBehaviour
 {
     [Header("REFERENCES")]
     [SerializeField] private Transform player;
+    [SerializeField] private PlayerController playerController;
     [SerializeField] private Light2D globalLight;
     [SerializeField] private Light2D spotLight;
     [SerializeField] private GameObject monsterPrefab;
@@ -30,11 +33,8 @@ public class DarkCorridorSection : MonoBehaviour
     [SerializeField] private float monsterScale = 1.5f;
 
     [Header("MONSTER VISUAL")]
-    [Tooltip("Color de la silueta. Usa gris oscuro para que se vea")]
-    [SerializeField] private Color silhouetteColor = new Color(0.1f, 0.1f, 0.1f, 1f); // Gris muy oscuro, NO negro puro
-    [Tooltip("Sorting Order del monstruo. Más alto = más adelante")]
+    [SerializeField] private Color silhouetteColor = new Color(0.1f, 0.1f, 0.1f, 1f);
     [SerializeField] private int monsterSortingOrder = 100;
-    [Tooltip("Sorting Layer del monstruo")]
     [SerializeField] private string monsterSortingLayer = "Default";
 
     [Header("AUDIO")]
@@ -42,12 +42,20 @@ public class DarkCorridorSection : MonoBehaviour
     [SerializeField] private AudioClip monsterPassSound;
     [SerializeField] private AudioClip distantRoar;
 
+    [Header("TRANSITION")]
+    [SerializeField] private Image fadeImage;
+    [SerializeField] private float fadeOutDuration = 2f;
+    [SerializeField] private float waitAfterMonster = 1.5f;
+    [SerializeField] private string nextSceneName = "SCN_Casa_Piso2_Normal";
+
     [Header("DEBUG")]
     [SerializeField] private bool showDebugGUI = true;
 
+    // Estado
     private bool isInDarkZone = false;
     private bool monsterEventTriggered = false;
     private bool spotlightReached = false;
+    private bool playerLocked = false;
     private GameObject monsterInstance;
     private string debugStatus = "Esperando...";
 
@@ -55,13 +63,25 @@ public class DarkCorridorSection : MonoBehaviour
     {
         Debug.Log("[DarkCorridor] ========== START ==========");
 
+        // Buscar Player
         if (player == null)
-            player = GameObject.FindGameObjectWithTag("Player")?.transform;
+        {
+            GameObject playerGO = GameObject.FindGameObjectWithTag("Player");
+            if (playerGO != null)
+            {
+                player = playerGO.transform;
+                playerController = playerGO.GetComponent<PlayerController>();
+            }
+        }
+        else if (playerController == null)
+        {
+            playerController = player.GetComponent<PlayerController>();
+        }
 
         if (vignetteController == null)
             vignetteController = FindFirstObjectByType<VignetteController>();
 
-        // Validar
+        // Validar referencias críticas
         if (monsterPrefab == null)
             Debug.LogError("[DarkCorridor] ❌ MONSTER PREFAB NO ASIGNADO!");
         else
@@ -71,21 +91,74 @@ public class DarkCorridorSection : MonoBehaviour
             Debug.LogError("[DarkCorridor] ❌ SPAWN POINT NO ASIGNADO!");
         if (monsterEndPoint == null)
             Debug.LogError("[DarkCorridor] ❌ END POINT NO ASIGNADO!");
+        if (fadeImage == null)
+            Debug.LogWarning("[DarkCorridor] ⚠️ FADE IMAGE NO ASIGNADA - No habrá transición fade");
+
+        // Asegurar que el fade empiece transparente
+        if (fadeImage != null)
+            fadeImage.color = new Color(0, 0, 0, 0);
 
         Debug.Log($"[DarkCorridor] Silhouette Color: {silhouetteColor}");
-        Debug.Log($"[DarkCorridor] Sorting Order: {monsterSortingOrder}");
+        Debug.Log($"[DarkCorridor] Next Scene: {nextSceneName}");
         Debug.Log("[DarkCorridor] ==============================");
     }
 
     private void Update()
     {
         if (player == null) return;
+        if (playerLocked) return; // No actualizar si el player está bloqueado
 
         float playerX = player.position.x;
 
         UpdateLighting(playerX);
         CheckSpotlightTrigger(playerX);
     }
+
+    #region PLAYER LOCK
+    private void LockPlayer()
+    {
+        playerLocked = true;
+        debugStatus = "Player BLOQUEADO";
+        Debug.Log("[DarkCorridor] 🔒 Player bloqueado");
+
+        // Método 1: Desactivar PlayerController
+        if (playerController != null)
+        {
+            playerController.enabled = false;
+        }
+
+        // Método 2: Congelar Rigidbody
+        if (player != null)
+        {
+            Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector2.zero;
+                rb.constraints = RigidbodyConstraints2D.FreezeAll;
+            }
+        }
+    }
+
+    private void UnlockPlayer()
+    {
+        playerLocked = false;
+        Debug.Log("[DarkCorridor] 🔓 Player desbloqueado");
+
+        if (playerController != null)
+        {
+            playerController.enabled = true;
+        }
+
+        if (player != null)
+        {
+            Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            }
+        }
+    }
+    #endregion
 
     #region LIGHTING
     private void UpdateLighting(float playerX)
@@ -142,58 +215,82 @@ public class DarkCorridorSection : MonoBehaviour
             spotlightReached = true;
             debugStatus = "Spotlight alcanzado!";
             Debug.Log($"[DarkCorridor] ✅ Spotlight alcanzado en X={playerX:F1}");
-            StartCoroutine(SpotlightSequence());
+
+            // ===== BLOQUEAR PLAYER INMEDIATAMENTE =====
+            LockPlayer();
+
+            StartCoroutine(FullEventSequence());
         }
     }
 
-    private IEnumerator SpotlightSequence()
+    private IEnumerator FullEventSequence()
     {
-        // Encender spotlight
-        if (spotLight != null)
+        Debug.Log("[DarkCorridor] ========== SECUENCIA COMPLETA ==========");
+
+        // 1. Encender spotlight
+        yield return StartCoroutine(TurnOnSpotlight());
+
+        // 2. Pequeña pausa
+        yield return new WaitForSeconds(1f);
+
+        // 3. Monstruo pasa
+        monsterEventTriggered = true;
+        yield return StartCoroutine(MonsterParallaxEvent());
+
+        // 4. Esperar después del monstruo
+        debugStatus = "Esperando...";
+        yield return new WaitForSeconds(waitAfterMonster);
+
+        // 5. Fade a negro
+        debugStatus = "Fade out...";
+        yield return StartCoroutine(FadeToBlack());
+
+        // 6. Cargar siguiente escena
+        debugStatus = "Cargando escena...";
+        Debug.Log($"[DarkCorridor] 🎬 Cargando: {nextSceneName}");
+        SceneManager.LoadScene(nextSceneName);
+    }
+
+    private IEnumerator TurnOnSpotlight()
+    {
+        if (spotLight == null) yield break;
+
+        debugStatus = "Encendiendo luz...";
+        float elapsed = 0f;
+
+        while (elapsed < 1f)
         {
-            float elapsed = 0f;
-            while (elapsed < 1f)
-            {
-                elapsed += Time.deltaTime;
-                spotLight.intensity = Mathf.Lerp(0f, 0.8f, elapsed);
-                yield return null;
-            }
-            Debug.Log("[DarkCorridor] Spotlight encendido");
+            elapsed += Time.deltaTime;
+            spotLight.intensity = Mathf.Lerp(0f, 0.8f, elapsed);
+            yield return null;
         }
 
-        yield return new WaitForSeconds(1.5f);
-
-        if (!monsterEventTriggered)
-        {
-            monsterEventTriggered = true;
-            StartCoroutine(MonsterParallaxEvent());
-        }
+        Debug.Log("[DarkCorridor] 💡 Spotlight encendido");
     }
 
     private IEnumerator MonsterParallaxEvent()
     {
-        Debug.Log("[DarkCorridor] ========== MONSTRUO APARECIENDO ==========");
+        Debug.Log("[DarkCorridor] 👹 MONSTRUO APARECIENDO");
         debugStatus = "¡MONSTRUO!";
 
         if (monsterPrefab == null || monsterSpawnPoint == null || monsterEndPoint == null)
         {
-            Debug.LogError("[DarkCorridor] ❌ Faltan referencias!");
+            Debug.LogError("[DarkCorridor] ❌ Faltan referencias del monstruo!");
             yield break;
         }
 
-        // Flicker
+        // Flicker del spotlight
         if (spotLight != null)
             StartCoroutine(FlickerLight(spotLight, 2f));
 
-        // Crear monstruo en posición del spawn (Z = 0, usamos sorting order)
+        // Crear monstruo
         Vector3 spawnPos = monsterSpawnPoint.position;
-
         Debug.Log($"[DarkCorridor] Spawning en: {spawnPos}");
 
         monsterInstance = Instantiate(monsterPrefab, spawnPos, Quaternion.identity);
-        monsterInstance.name = "MonsterSilhouette_VISIBLE";
+        monsterInstance.name = "MonsterSilhouette";
 
-        // ===== CONFIGURAR VISIBILIDAD =====
+        // Configurar visibilidad
         ConfigureMonsterVisibility(monsterInstance);
 
         // Escala
@@ -203,14 +300,14 @@ public class DarkCorridorSection : MonoBehaviour
         bool movingRight = monsterEndPoint.position.x > monsterSpawnPoint.position.x;
         SetMonsterDirection(monsterInstance, movingRight);
 
-        // Sonido
+        // Sonido de paso
         if (monsterSource != null && monsterPassSound != null)
         {
             monsterSource.volume = 0.8f;
             monsterSource.PlayOneShot(monsterPassSound);
         }
 
-        // Mover
+        // Mover el monstruo
         Vector3 startPos = monsterInstance.transform.position;
         Vector3 endPos = monsterEndPoint.position;
         float distance = Vector2.Distance(startPos, endPos);
@@ -226,7 +323,7 @@ public class DarkCorridorSection : MonoBehaviour
             yield return null;
         }
 
-        // Destruir
+        // Destruir monstruo
         if (monsterInstance != null)
         {
             Debug.Log("[DarkCorridor] Destruyendo monstruo");
@@ -235,19 +332,44 @@ public class DarkCorridorSection : MonoBehaviour
 
         debugStatus = "Monstruo pasó";
 
-        // Vignette
+        // Efecto de pánico en vignette
         if (vignetteController != null)
             vignetteController.PanicFlash();
 
-        // Rugido
-        yield return new WaitForSeconds(0.5f);
+        // Rugido distante
+        yield return new WaitForSeconds(0.3f);
         if (monsterSource != null && distantRoar != null)
         {
             monsterSource.volume = 0.5f;
             monsterSource.PlayOneShot(distantRoar);
         }
 
-        Debug.Log("[DarkCorridor] ========== EVENTO COMPLETADO ==========");
+        Debug.Log("[DarkCorridor] 👹 Monstruo completado");
+    }
+
+    private IEnumerator FadeToBlack()
+    {
+        Debug.Log("[DarkCorridor] ⬛ Iniciando fade...");
+
+        if (fadeImage == null)
+        {
+            Debug.LogWarning("[DarkCorridor] No hay fadeImage, saltando fade");
+            yield break;
+        }
+
+        float elapsed = 0f;
+
+        while (elapsed < fadeOutDuration)
+        {
+            elapsed += Time.deltaTime;
+            float alpha = Mathf.Clamp01(elapsed / fadeOutDuration);
+            fadeImage.color = new Color(0, 0, 0, alpha);
+            yield return null;
+        }
+
+        // Asegurar que quede completamente negro
+        fadeImage.color = Color.black;
+        Debug.Log("[DarkCorridor] ⬛ Fade completado");
     }
 
     private void ConfigureMonsterVisibility(GameObject monster)
@@ -281,21 +403,15 @@ public class DarkCorridorSection : MonoBehaviour
         SpriteRenderer[] renderers = monster.GetComponentsInChildren<SpriteRenderer>(true);
         foreach (var sr in renderers)
         {
-            // Color de silueta (NO negro puro para que se vea)
             sr.color = silhouetteColor;
-
-            // Sorting para que esté ADELANTE de todo
             sr.sortingLayerName = monsterSortingLayer;
             sr.sortingOrder = monsterSortingOrder;
         }
         Debug.Log($"[DarkCorridor] - {renderers.Length} sprites configurados");
-        Debug.Log($"[DarkCorridor] - Color: {silhouetteColor}");
-        Debug.Log($"[DarkCorridor] - Sorting: {monsterSortingLayer} / Order: {monsterSortingOrder}");
     }
 
     private void SetMonsterDirection(GameObject monster, bool movingRight)
     {
-        // Para personajes riggeados, usar escala
         Vector3 scale = monster.transform.localScale;
         scale.x = movingRight ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
         monster.transform.localScale = scale;
@@ -315,6 +431,60 @@ public class DarkCorridorSection : MonoBehaviour
         }
 
         light.intensity = originalIntensity;
+    }
+    #endregion
+
+    #region DEBUG
+    private void OnGUI()
+    {
+        if (!showDebugGUI || player == null) return;
+
+        GUILayout.BeginArea(new Rect(10, 10, 320, 220));
+        GUILayout.BeginVertical("box");
+
+        GUILayout.Label("<b>=== PASILLO OSCURO ===</b>");
+        GUILayout.Label($"Estado: <color=yellow>{debugStatus}</color>");
+        GUILayout.Label($"Player X: {player.position.x:F1}");
+        GUILayout.Label($"Spotlight X: {spotlightX}");
+        GUILayout.Label($"Distancia: {Mathf.Abs(player.position.x - spotlightX):F1}");
+        GUILayout.Space(5);
+        GUILayout.Label($"Player Locked: {(playerLocked ? "<color=red>🔒 SÍ</color>" : "❌ NO")}");
+        GUILayout.Label($"Spotlight Alcanzado: {(spotlightReached ? "✅" : "❌")}");
+        GUILayout.Label($"Monstruo Triggered: {(monsterEventTriggered ? "✅" : "❌")}");
+        GUILayout.Space(5);
+        GUILayout.Label($"Next Scene: {nextSceneName}");
+
+        GUILayout.EndVertical();
+        GUILayout.EndArea();
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        float y = 0f;
+        float height = 5f;
+
+        // Zonas de luz
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawLine(new Vector3(lightZoneEnd, y - height, 0), new Vector3(lightZoneEnd, y + height, 0));
+
+        Gizmos.color = Color.gray;
+        Gizmos.DrawLine(new Vector3(darkZoneStart, y - height, 0), new Vector3(darkZoneStart, y + height, 0));
+
+        // Spotlight trigger zone
+        Gizmos.color = Color.white;
+        Gizmos.DrawWireSphere(new Vector3(spotlightX, y, 0), 3f);
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawLine(new Vector3(darkZoneEnd, y - height, 0), new Vector3(darkZoneEnd, y + height, 0));
+
+        // Monster path
+        if (monsterSpawnPoint != null && monsterEndPoint != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(monsterSpawnPoint.position, 0.5f);
+            Gizmos.DrawSphere(monsterEndPoint.position, 0.5f);
+            Gizmos.DrawLine(monsterSpawnPoint.position, monsterEndPoint.position);
+        }
     }
     #endregion
 }
