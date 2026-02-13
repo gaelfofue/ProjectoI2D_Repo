@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 6000255502480040162}
   - component: {fileID: 5390530391665963202}
   - component: {fileID: 4614261705037069953}
+  - component: {fileID: 7581617580597266648}
   m_Layer: 8
   m_Name: Enemy
   m_TagString: Enemy
@@ -156,8 +157,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_Size: {x: 1, y: 2}
+  m_Offset: {x: 0, y: 0.4010265}
+  m_Size: {x: 1, y: 5.1001773}
   m_Direction: 0
 --- !u!114 &4614261705037069953
 MonoBehaviour:
@@ -198,6 +199,28 @@ MonoBehaviour:
   alertColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   chaseColor: {r: 1, g: 0, b: 0, a: 1}
   searchColor: {r: 0, g: 1, b: 1, a: 1}
+--- !u!95 &7581617580597266648
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5299590656440286252}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 18ab84a067d1a684ea8f2199c166cf9d, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &8612955457224087304
 GameObject:
   m_ObjectHideFlags: 0
@@ -271,7 +294,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -7552582706839291426, guid: 4c85926a4c481874bb5f2404a39df325, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 4.4
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -7552582706839291426, guid: 4c85926a4c481874bb5f2404a39df325, type: 3}
       propertyPath: m_LocalPosition.y
