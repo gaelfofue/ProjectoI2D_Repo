@@ -676,6 +676,30 @@ public class VignetteController : MonoBehaviour
     }
     #endregion
 
+    #region PUBLIC METHODS
+    /// <summary>
+    /// Establece la intensidad del vignette manualmente
+    /// </summary>
+    public void SetVignetteIntensity(float intensity)
+    {
+        if (vignette != null)
+        {
+            vignette.intensity.value = intensity;
+        }
+    }
+
+    /// <summary>
+    /// Establece el color del vignette manualmente
+    /// </summary>
+    public void SetVignetteColor(Color color)
+    {
+        if (vignette != null)
+        {
+            vignette.color.value = color;
+        }
+    }
+    #endregion
+
     #region RESET
     private void ResetEffectsToDefault()
     {
