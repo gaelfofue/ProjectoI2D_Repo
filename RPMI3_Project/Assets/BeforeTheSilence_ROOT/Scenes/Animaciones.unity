@@ -406,6 +406,10 @@ PrefabInstance:
       propertyPath: m_Offset.y
       value: 0.4010265
       objectReference: {fileID: 0}
+    - target: {fileID: 7581617580597266648, guid: 402a91351f4db1f4f98cdc5457a6f4a4, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 595a184ad23ad5f47997b557731f7cca, type: 2}
     - target: {fileID: 8332776088988060484, guid: 402a91351f4db1f4f98cdc5457a6f4a4, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
