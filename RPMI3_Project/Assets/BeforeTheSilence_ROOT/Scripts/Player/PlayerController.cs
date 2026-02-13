@@ -3,10 +3,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Events;
 
-/// <summary>
-/// Controlador completo del jugador con sistemas de stamina, miedo, escondite y animaciones.
-/// COMPATIBLE CON PERSONAJES RIGGEADOS (PSB de Photoshop)
-/// </summary>
 public class PlayerController : MonoBehaviour
 {
     #region VARIABLES
@@ -82,6 +78,7 @@ public class PlayerController : MonoBehaviour
     private int originalLayer;
     private BreathingState lastBreathingState = BreathingState.Normal;
     private bool isFacingRight = true;
+    private bool isLockedForInteraction = false;
 
     // Cache de SpriteRenderers para personajes riggeados
     private SpriteRenderer[] allSpriteRenderers;
@@ -112,6 +109,7 @@ public class PlayerController : MonoBehaviour
     public bool IsHidden => isHidden;
     public bool IsDead => isDead;
     public bool IsExhausted => isExhausted;
+    public bool IsLockedForInteraction => isLockedForInteraction;
     public Vector2 Position => transform.position;
     public bool IsFacingRight => isFacingRight;
 
@@ -127,12 +125,10 @@ public class PlayerController : MonoBehaviour
     #region UNITY METHODS
     private void Awake()
     {
-        // Obtener componentes
         if (rb == null) rb = GetComponent<Rigidbody2D>();
         if (playerCollider == null) playerCollider = GetComponent<Collider2D>();
         if (animator == null) animator = GetComponent<Animator>();
 
-        // Cachear todos los SpriteRenderers para personajes riggeados
         CacheAllSpriteRenderers();
 
         originalLayer = gameObject.layer;
@@ -163,7 +159,6 @@ public class PlayerController : MonoBehaviour
             Debug.LogWarning("[PlayerController] No hay Animator asignado!");
         }
 
-        // Asegurar que el personaje empiece mirando a la derecha
         SetFacingDirection(true);
     }
 
@@ -187,6 +182,7 @@ public class PlayerController : MonoBehaviour
     }
     #endregion
 
+    #region BREATHING
     private void UpdateBreathing()
     {
         if (AudioManager.Instance == null) return;
@@ -220,19 +216,15 @@ public class PlayerController : MonoBehaviour
             lastBreathingState = newState;
         }
     }
+    #endregion
 
-    #region SPRITE RENDERER CACHE (Para personajes riggeados)
-    /// <summary>
-    /// Cachea todos los SpriteRenderers del personaje riggeado
-    /// </summary>
+    #region SPRITE RENDERER CACHE
     private void CacheAllSpriteRenderers()
     {
         if (isRiggedCharacter)
         {
-            // Obtener todos los SpriteRenderers del personaje y sus hijos
             allSpriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
 
-            // Guardar los colores originales
             originalColors = new Color[allSpriteRenderers.Length];
             for (int i = 0; i < allSpriteRenderers.Length; i++)
             {
@@ -243,7 +235,6 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            // Para sprites simples
             if (mainSpriteRenderer == null)
             {
                 mainSpriteRenderer = GetComponent<SpriteRenderer>();
@@ -257,9 +248,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Cambia el color de todos los SpriteRenderers
-    /// </summary>
     private void SetAllSpritesColor(Color color)
     {
         if (allSpriteRenderers == null) return;
@@ -273,9 +261,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Lerp del color de todos los SpriteRenderers
-    /// </summary>
     private void LerpAllSpritesColor(Color targetColor, float speed)
     {
         if (allSpriteRenderers == null) return;
@@ -289,9 +274,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Restaura los colores originales
-    /// </summary>
     private void RestoreOriginalColors()
     {
         if (allSpriteRenderers == null || originalColors == null) return;
@@ -327,10 +309,6 @@ public class PlayerController : MonoBehaviour
         UpdateSpriteDirection();
     }
 
-    /// <summary>
-    /// Voltea el personaje según la dirección del movimiento
-    /// FUNCIONA CON PERSONAJES RIGGEADOS
-    /// </summary>
     private void UpdateSpriteDirection()
     {
         if (Mathf.Abs(horizontal) > 0.1f)
@@ -344,25 +322,15 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Establece la dirección del personaje usando escala
-    /// COMPATIBLE CON PERSONAJES RIGGEADOS (PSB)
-    /// </summary>
     private void SetFacingDirection(bool faceRight)
     {
         isFacingRight = faceRight;
 
-        // MÉTODO CORRECTO PARA PERSONAJES RIGGEADOS: Usar escala
         Vector3 scale = transform.localScale;
         scale.x = faceRight ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
         transform.localScale = scale;
-
-        Debug.Log($"[PlayerController] Personaje mirando a la {(faceRight ? "derecha" : "izquierda")}");
     }
 
-    /// <summary>
-    /// Método público para forzar la dirección desde otros scripts
-    /// </summary>
     public void ForceFaceDirection(bool faceRight)
     {
         SetFacingDirection(faceRight);
@@ -697,16 +665,35 @@ public class PlayerController : MonoBehaviour
     }
     #endregion
 
+    #region INTERACTION LOCK
+
+    /// <summary>
+    /// Bloquea/desbloquea el movimiento para interacciones (buscar muebles, etc.)
+    /// </summary>
+    public void LockForInteraction(bool locked)
+    {
+        isLockedForInteraction = locked;
+
+        if (locked)
+        {
+            horizontal = 0f;
+            isRunning = false;
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+        }
+    }
+
+    #endregion
+
     #region INPUT HANDLERS
     public void Move(InputAction.CallbackContext context)
     {
-        if (isDead) return;
+        if (isDead || isLockedForInteraction) return;
         horizontal = context.ReadValue<Vector2>().x;
     }
 
     public void Run(InputAction.CallbackContext context)
     {
-        if (isDead) return;
+        if (isDead || isLockedForInteraction) return;
 
         if (context.started && !isExhausted && currentStamina > 0)
         {
@@ -721,7 +708,7 @@ public class PlayerController : MonoBehaviour
 
     public void Jump(InputAction.CallbackContext context)
     {
-        if (isDead) return;
+        if (isDead || isLockedForInteraction) return;
 
         if (context.performed && IsGrounded())
         {
@@ -735,7 +722,7 @@ public class PlayerController : MonoBehaviour
 
     public void ToggleHide(InputAction.CallbackContext context)
     {
-        if (isDead) return;
+        if (isDead || isLockedForInteraction) return;
 
         if (context.performed && isInSafeZone)
         {
@@ -817,7 +804,7 @@ public class PlayerController : MonoBehaviour
     #region DEATH SYSTEM
     public void TakeDamage()
     {
-        if (isDead) return; // Prevenir múltiples llamadas
+        if (isDead) return;
 
         Debug.Log("[PlayerController] ¡TakeDamage llamado!");
         TriggerDamageFlash();
@@ -826,7 +813,7 @@ public class PlayerController : MonoBehaviour
 
     public void GetDiscovered()
     {
-        if (isDead) return; // Prevenir múltiples llamadas
+        if (isDead) return;
 
         TriggerDiscoveryFlash();
 
@@ -853,7 +840,6 @@ public class PlayerController : MonoBehaviour
         rb.linearVelocity = Vector2.zero;
         rb.bodyType = RigidbodyType2D.Static;
 
-        // Cambiar color a rojo para indicar muerte (todos los sprites)
         SetAllSpritesColor(Color.red);
 
         horizontal = 0;
@@ -864,7 +850,6 @@ public class PlayerController : MonoBehaviour
 
         OnDeath?.Invoke();
 
-        // Llamar al GameManager
         if (GameManager.Instance != null)
         {
             Debug.Log("[PlayerController] Llamando a GameManager.GameOver()");

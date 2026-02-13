@@ -1,35 +1,50 @@
 using UnityEngine;
+using System.Collections.Generic;
 
-public class GameState : MonoBehaviour
+public class GameProgressManager : MonoBehaviour
 {
-    public static GameState Instance;
+    public static GameProgressManager Instance { get; private set; }
 
-    public bool hasMotherRoomKey = false;
-    public bool hasExitKey = false;
+    private HashSet<string> collectedKeys = new HashSet<string>();
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
+            return;
         }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
     public void PickUpKey(string keyName)
     {
-        if (keyName == "MotherRoomKey") hasMotherRoomKey = true;
-        if (keyName == "ExitKey") hasExitKey = true;
-        Debug.Log($"Llave recogida: {keyName}");
+        if (string.IsNullOrEmpty(keyName)) return;
+
+        if (collectedKeys.Add(keyName))
+        {
+            Debug.Log($"[GameProgressManager] Llave recogida: {keyName}");
+        }
     }
 
-    public void ResetKeys()
+    public bool HasKey(string keyName)
     {
-        hasMotherRoomKey = false;
-        hasExitKey = false;
+        return collectedKeys.Contains(keyName);
+    }
+
+    public bool UseKey(string keyName)
+    {
+        if (collectedKeys.Remove(keyName))
+        {
+            Debug.Log($"[GameProgressManager] Llave usada: {keyName}");
+            return true;
+        }
+        return false;
+    }
+
+    public void ResetProgress()
+    {
+        collectedKeys.Clear();
     }
 }
