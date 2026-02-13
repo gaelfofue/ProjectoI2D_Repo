@@ -4461,7 +4461,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ab339d8ebc0b604f95363a7c98b9921, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelDoor
-  levelSceneName: SCN_Level1
+  levelSceneName: SCN_DarkCorridor
   levelIndex: 1
   levelDisplayName: Nivel 1
   isLocked: 0
