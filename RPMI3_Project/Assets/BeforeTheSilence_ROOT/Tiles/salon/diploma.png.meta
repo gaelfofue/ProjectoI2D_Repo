@@ -1,0 +1,224 @@
+fileFormatVersion: 2
+guid: 1581e57ec2463984cb8aa7627863bd9e
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 359978444824310463
+    second: diploma_0
+  - first:
+      213: 6871163693064497966
+    second: diploma_1
+  - first:
+      213: 2024127821258810570
+    second: diploma_2
+  - first:
+      213: -19118386753258887
+    second: diploma_3
+  - first:
+      213: -616925866875866307
+    second: diploma_4
+  - first:
+      213: -6030593259535464047
+    second: diploma_5
+  - first:
+      213: -6347046763864311709
+    second: diploma_6
+  - first:
+      213: -9067576186192460219
+    second: diploma_7
+  - first:
+      213: -1151263727007060048
+    second: diploma_8
+  - first:
+      213: -7238863676354553460
+    second: diploma_9
+  - first:
+      213: 8101816575160322559
+    second: diploma_10
+  - first:
+      213: -2406683848136096906
+    second: diploma_11
+  - first:
+      213: 8662053594599379507
+    second: diploma_12
+  - first:
+      213: -951444150891576571
+    second: diploma_13
+  - first:
+      213: 874896458491088400
+    second: diploma_14
+  - first:
+      213: -2112841617349079372
+    second: diploma_15
+  - first:
+      213: 1063038306538619737
+    second: diploma_16
+  - first:
+      213: -4635262841619576545
+    second: diploma_17
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: diploma_3
+      rect:
+        serializedVersion: 2
+        x: 578
+        y: 525
+        width: 107
+        height: 133
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97ab4e4bde31cbff0800000000000000
+      internalID: -19118386753258887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 2e59bb7a3ffbd62429954dc409e326aa
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      diploma_0: 359978444824310463
+      diploma_1: 6871163693064497966
+      diploma_10: 8101816575160322559
+      diploma_11: -2406683848136096906
+      diploma_12: 8662053594599379507
+      diploma_13: -951444150891576571
+      diploma_14: 874896458491088400
+      diploma_15: -2112841617349079372
+      diploma_16: 1063038306538619737
+      diploma_17: -4635262841619576545
+      diploma_2: 2024127821258810570
+      diploma_3: -19118386753258887
+      diploma_4: -616925866875866307
+      diploma_5: -6030593259535464047
+      diploma_6: -6347046763864311709
+      diploma_7: -9067576186192460219
+      diploma_8: -1151263727007060048
+      diploma_9: -7238863676354553460
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
