@@ -1,0 +1,832 @@
+fileFormatVersion: 2
+guid: d95d2698c2c66b04492059d1287592ae
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6242528533265953460
+    second: lampara_0
+  - first:
+      213: -745927512018582290
+    second: lampara_1
+  - first:
+      213: -4016640240712919063
+    second: lampara_2
+  - first:
+      213: 978315713884531766
+    second: lampara_3
+  - first:
+      213: 7687549535854545476
+    second: lampara_4
+  - first:
+      213: -3725070361812254227
+    second: lampara_5
+  - first:
+      213: 6387663046214221308
+    second: lampara_6
+  - first:
+      213: -2349066682577089669
+    second: lampara_7
+  - first:
+      213: 2692984588932644060
+    second: lampara_8
+  - first:
+      213: 181413901306780865
+    second: lampara_9
+  - first:
+      213: 6198410352649778130
+    second: lampara_10
+  - first:
+      213: -7470157305033559161
+    second: lampara_11
+  - first:
+      213: 7318648629865080205
+    second: lampara_12
+  - first:
+      213: 6116441871313758767
+    second: lampara_13
+  - first:
+      213: 6078152225756300553
+    second: lampara_14
+  - first:
+      213: 8889852997337670285
+    second: lampara_15
+  - first:
+      213: 1722343206338477953
+    second: lampara_16
+  - first:
+      213: -1825178561387418010
+    second: lampara_17
+  - first:
+      213: -5334911245094575573
+    second: lampara_18
+  - first:
+      213: -6004022140739437249
+    second: lampara_19
+  - first:
+      213: -5913999004678365266
+    second: lampara_20
+  - first:
+      213: -2058075982403735000
+    second: lampara_21
+  - first:
+      213: -2863769629286196003
+    second: lampara_22
+  - first:
+      213: 6532087984349197687
+    second: lampara_23
+  - first:
+      213: -8197332241413793945
+    second: lampara_24
+  - first:
+      213: -6439698166292417917
+    second: lampara_25
+  - first:
+      213: -1517132881985740401
+    second: lampara_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: lampara_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 755
+        width: 248
+        height: 269
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b2be8d60aae1a650800000000000000
+      internalID: 6242528533265953460
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_1
+      rect:
+        serializedVersion: 2
+        x: 411
+        y: 404
+        width: 613
+        height: 620
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee401f141eee5a5f0800000000000000
+      internalID: -745927512018582290
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_2
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 672
+        width: 21
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e754cd6bf60248c0800000000000000
+      internalID: -4016640240712919063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_3
+      rect:
+        serializedVersion: 2
+        x: 600
+        y: 485
+        width: 22
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63c254c55fca39d00800000000000000
+      internalID: 978315713884531766
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_4
+      rect:
+        serializedVersion: 2
+        x: 602
+        y: 479
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44a44dd8299afaa60800000000000000
+      internalID: 7687549535854545476
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_5
+      rect:
+        serializedVersion: 2
+        x: 228
+        y: 412
+        width: 24
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: de148d00e34ed4cc0800000000000000
+      internalID: -3725070361812254227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_6
+      rect:
+        serializedVersion: 2
+        x: 241
+        y: 404
+        width: 8
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfdfc7e72b985a850800000000000000
+      internalID: 6387663046214221308
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_7
+      rect:
+        serializedVersion: 2
+        x: 248
+        y: 405
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7b894f4c40766fd0800000000000000
+      internalID: -2349066682577089669
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_8
+      rect:
+        serializedVersion: 2
+        x: 478
+        y: 404
+        width: 12
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cdc7ee037376f5520800000000000000
+      internalID: 2692984588932644060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_9
+      rect:
+        serializedVersion: 2
+        x: 489
+        y: 407
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cc55b86bf2848200800000000000000
+      internalID: 181413901306780865
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_10
+      rect:
+        serializedVersion: 2
+        x: 493
+        y: 406
+        width: 11
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d33bc9006d250650800000000000000
+      internalID: 6198410352649778130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_11
+      rect:
+        serializedVersion: 2
+        x: 503
+        y: 408
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7837f29728ba45890800000000000000
+      internalID: -7470157305033559161
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_12
+      rect:
+        serializedVersion: 2
+        x: 510
+        y: 409
+        width: 10
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d85e10b2720119560800000000000000
+      internalID: 7318648629865080205
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_13
+      rect:
+        serializedVersion: 2
+        x: 519
+        y: 409
+        width: 11
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2a6bf4c977f1e450800000000000000
+      internalID: 6116441871313758767
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_14
+      rect:
+        serializedVersion: 2
+        x: 520
+        y: 406
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90544f2fe3fe95450800000000000000
+      internalID: 6078152225756300553
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_15
+      rect:
+        serializedVersion: 2
+        x: 525
+        y: 409
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d82e0cb533a1f5b70800000000000000
+      internalID: 8889852997337670285
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_16
+      rect:
+        serializedVersion: 2
+        x: 535
+        y: 406
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 18fbc13550ef6e710800000000000000
+      internalID: 1722343206338477953
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_17
+      rect:
+        serializedVersion: 2
+        x: 541
+        y: 408
+        width: 13
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66e28d4c4c9aba6e0800000000000000
+      internalID: -1825178561387418010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_18
+      rect:
+        serializedVersion: 2
+        x: 555
+        y: 407
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b22a6e7fc7696f5b0800000000000000
+      internalID: -5334911245094575573
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_19
+      rect:
+        serializedVersion: 2
+        x: 250
+        y: 399
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f3d35a57cad6daca0800000000000000
+      internalID: -6004022140739437249
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_20
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 399
+        width: 21
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eafd12c2d314deda0800000000000000
+      internalID: -5913999004678365266
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_21
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 402
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 822ff045cce3073e0800000000000000
+      internalID: -2058075982403735000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_22
+      rect:
+        serializedVersion: 2
+        x: 496
+        y: 403
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ddc18dfe1b8d148d0800000000000000
+      internalID: -2863769629286196003
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_23
+      rect:
+        serializedVersion: 2
+        x: 510
+        y: 405
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7753bbcc963a6aa50800000000000000
+      internalID: 6532087984349197687
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_24
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 259
+        height: 398
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7679cacf1c93d3e80800000000000000
+      internalID: -8197332241413793945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_25
+      rect:
+        serializedVersion: 2
+        x: 244
+        y: 394
+        width: 13
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 382f76103a891a6a0800000000000000
+      internalID: -6439698166292417917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lampara_26
+      rect:
+        serializedVersion: 2
+        x: 887
+        y: 283
+        width: 15
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f81ec249eaf02fae0800000000000000
+      internalID: -1517132881985740401
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      lampara_0: 6242528533265953460
+      lampara_1: -745927512018582290
+      lampara_10: 6198410352649778130
+      lampara_11: -7470157305033559161
+      lampara_12: 7318648629865080205
+      lampara_13: 6116441871313758767
+      lampara_14: 6078152225756300553
+      lampara_15: 8889852997337670285
+      lampara_16: 1722343206338477953
+      lampara_17: -1825178561387418010
+      lampara_18: -5334911245094575573
+      lampara_19: -6004022140739437249
+      lampara_2: -4016640240712919063
+      lampara_20: -5913999004678365266
+      lampara_21: -2058075982403735000
+      lampara_22: -2863769629286196003
+      lampara_23: 6532087984349197687
+      lampara_24: -8197332241413793945
+      lampara_25: -6439698166292417917
+      lampara_26: -1517132881985740401
+      lampara_3: 978315713884531766
+      lampara_4: 7687549535854545476
+      lampara_5: -3725070361812254227
+      lampara_6: 6387663046214221308
+      lampara_7: -2349066682577089669
+      lampara_8: 2692984588932644060
+      lampara_9: 181413901306780865
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
