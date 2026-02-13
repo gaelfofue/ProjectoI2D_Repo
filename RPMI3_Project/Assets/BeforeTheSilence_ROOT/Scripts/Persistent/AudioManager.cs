@@ -31,25 +31,46 @@ public class AudioManager : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private float musicFadeSpeed = 1f;
     [SerializeField] private float breathingFadeSpeed = 2f;
+
+    [Header("Heartbeat Settings")]
+    [Tooltip("Distancia a la que el heartbeat empieza a sonar")]
+    [SerializeField] private float heartbeatStartDistance = 20f;
+    [Tooltip("Distancia a la que el heartbeat está al máximo")]
+    [SerializeField] private float heartbeatMaxDistance = 5f;
+    [Tooltip("Activar heartbeat automático basado en enemigo")]
+    [SerializeField] private bool autoHeartbeat = true;
+
+    [Header("Auto Breathing")]
+    [Tooltip("Iniciar respiración normal automáticamente en gameplay")]
+    [SerializeField] private bool autoStartBreathing = true;
+    [Tooltip("Nombres de escenas de gameplay (donde suena la respiración)")]
+    [SerializeField] private string[] gameplaySceneNames = { "Gameplay", "Game", "Level" };
     #endregion
 
     #region PRIVATE VARIABLES
-    // Audio Sources
     private AudioSource musicSource;
     private AudioSource sfxSource;
     private AudioSource breathingSource;
     private AudioSource ambientSource;
+    private AudioSource heartbeatSource;
 
-    // Volume settings (local backup)
     private float _masterVolume = 1f;
     private float _musicVolume = 1f;
     private float _sfxVolume = 1f;
 
-    // State
-    private BreathingState currentBreathingState = BreathingState.Normal;
+    // ===== CAMBIO CLAVE: inicializar en un estado "no iniciado" =====
+    private BreathingState currentBreathingState = BreathingState.None;
+    private bool breathingStarted = false;
+
     private Coroutine breathingCoroutine;
     private Coroutine musicCoroutine;
     private Coroutine heartbeatCoroutine;
+
+    // Heartbeat tracking
+    private float currentHeartbeatIntensity = 0f;
+    private bool heartbeatActive = false;
+    private Transform enemyTransform;
+    private Transform playerTransform;
     #endregion
 
     #region PROPERTIES
@@ -97,11 +118,8 @@ public class AudioManager : MonoBehaviour
         {
             Instance = this;
 
-            // Asegurar que es objeto raíz
             if (transform.parent != null)
-            {
                 transform.SetParent(null);
-            }
 
             DontDestroyOnLoad(gameObject);
             InitializeAudioSources();
@@ -125,50 +143,89 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        if (autoHeartbeat)
+        {
+            UpdateAutoHeartbeat();
+        }
+    }
+
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         Debug.Log($"[AudioManager] Escena '{scene.name}' cargada");
         UpdateAllVolumes();
+
+        // Reset referencias al cambiar de escena
+        enemyTransform = null;
+        playerTransform = null;
+
+        // Auto-iniciar respiración en escenas de gameplay
+        if (autoStartBreathing && IsGameplayScene(scene.name))
+        {
+            // Pequeño delay para que todo se inicialice
+            StartCoroutine(AutoStartBreathingDelayed());
+        }
+        else
+        {
+            // En menús, parar respiración
+            StopBreathing();
+            StopHeartbeat();
+        }
+    }
+
+    private IEnumerator AutoStartBreathingDelayed()
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        if (!breathingStarted)
+        {
+            Debug.Log("[AudioManager] Auto-iniciando respiración normal");
+            ForceStartBreathing(BreathingState.Normal);
+        }
+    }
+
+    private bool IsGameplayScene(string sceneName)
+    {
+        string lower = sceneName.ToLower();
+
+        foreach (string name in gameplaySceneNames)
+        {
+            if (lower.Contains(name.ToLower()))
+                return true;
+        }
+
+        // Si no se configuraron nombres, asumir que todo lo que NO sea "menu" es gameplay
+        if (gameplaySceneNames.Length == 0)
+        {
+            return !lower.Contains("menu") && !lower.Contains("title") && !lower.Contains("main");
+        }
+
+        return false;
     }
     #endregion
 
     #region INITIALIZATION
     private void InitializeAudioSources()
     {
-        // Limpiar referencias potencialmente rotas
-        musicSource = null;
-        sfxSource = null;
-        breathingSource = null;
-        ambientSource = null;
-
-        // Crear Music Source
-        GameObject musicObj = new GameObject("MusicSource");
-        musicObj.transform.SetParent(transform);
-        musicSource = musicObj.AddComponent<AudioSource>();
-        musicSource.loop = true;
-        musicSource.playOnAwake = false;
-
-        // Crear SFX Source
-        GameObject sfxObj = new GameObject("SFXSource");
-        sfxObj.transform.SetParent(transform);
-        sfxSource = sfxObj.AddComponent<AudioSource>();
-        sfxSource.playOnAwake = false;
-
-        // Crear Breathing Source
-        GameObject breathObj = new GameObject("BreathingSource");
-        breathObj.transform.SetParent(transform);
-        breathingSource = breathObj.AddComponent<AudioSource>();
-        breathingSource.loop = true;
-        breathingSource.playOnAwake = false;
-
-        // Crear Ambient Source
-        GameObject ambientObj = new GameObject("AmbientSource");
-        ambientObj.transform.SetParent(transform);
-        ambientSource = ambientObj.AddComponent<AudioSource>();
-        ambientSource.loop = true;
-        ambientSource.playOnAwake = false;
+        musicSource = CreateAudioSource("MusicSource", true);
+        sfxSource = CreateAudioSource("SFXSource", false);
+        breathingSource = CreateAudioSource("BreathingSource", true);
+        ambientSource = CreateAudioSource("AmbientSource", true);
+        heartbeatSource = CreateAudioSource("HeartbeatSource", false);
 
         Debug.Log("[AudioManager] AudioSources creados correctamente");
+    }
+
+    private AudioSource CreateAudioSource(string name, bool loop)
+    {
+        GameObject obj = new GameObject(name);
+        obj.transform.SetParent(transform);
+        AudioSource source = obj.AddComponent<AudioSource>();
+        source.loop = loop;
+        source.playOnAwake = false;
+        source.spatialBlend = 0f;
+        return source;
     }
 
     private void LoadVolumeSettings()
@@ -208,33 +265,39 @@ public class AudioManager : MonoBehaviour
         if (IsAudioSourceValid(sfxSource))
             sfxSource.volume = sfx * master;
 
-        if (IsAudioSourceValid(breathingSource))
-            breathingSource.volume = sfx * master * 0.7f;
+        if (IsAudioSourceValid(breathingSource) && breathingSource.isPlaying)
+        {
+            // Recalcular volumen de breathing según estado actual
+            float baseVol = GetBreathingBaseVolume(currentBreathingState);
+            breathingSource.volume = baseVol * sfx * master;
+        }
 
         if (IsAudioSourceValid(ambientSource))
             ambientSource.volume = sfx * master * 0.5f;
+
+        if (IsAudioSourceValid(heartbeatSource))
+            heartbeatSource.volume = sfx * master;
     }
 
-    public void SetMasterVolume(float value)
+    private float GetBreathingBaseVolume(BreathingState state)
     {
-        MasterVolume = value;
+        return state switch
+        {
+            BreathingState.Normal => 0.3f,
+            BreathingState.Heavy => 0.5f,
+            BreathingState.Exhausted => 0.65f,
+            BreathingState.Scared => 0.7f,
+            BreathingState.Panic => 0.85f,
+            _ => 0.3f
+        };
     }
 
-    public void SetMusicVolume(float value)
-    {
-        MusicVolume = value;
-    }
-
-    public void SetSFXVolume(float value)
-    {
-        SFXVolume = value;
-    }
+    public void SetMasterVolume(float value) => MasterVolume = value;
+    public void SetMusicVolume(float value) => MusicVolume = value;
+    public void SetSFXVolume(float value) => SFXVolume = value;
     #endregion
 
     #region MUSIC SYSTEM
-    /// <summary>
-    /// Reproducir música con clip específico (MÉTODO PRINCIPAL)
-    /// </summary>
     public void PlayMusic(AudioClip clip, float fadeTime = 1f)
     {
         if (clip == null)
@@ -243,57 +306,36 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
-        // Si es el mismo clip y está reproduciéndose, no hacer nada
         if (IsAudioSourceValid(musicSource) && musicSource.clip == clip && musicSource.isPlaying)
-        {
             return;
-        }
 
         if (musicCoroutine != null) StopCoroutine(musicCoroutine);
         musicCoroutine = StartCoroutine(CrossfadeMusic(clip, fadeTime));
     }
 
-    /// <summary>
-    /// Métodos de conveniencia para música predefinida
-    /// </summary>
     public void PlayMenuMusic() => PlayMusic(menuMusic);
     public void PlayGameplayMusic() => PlayMusic(gameplayMusic);
     public void PlayTensionMusic() => PlayMusic(tensionMusic);
     public void PlayGameOverMusic() => PlayMusic(gameOverMusic, 0.5f);
 
-    /// <summary>
-    /// Detener música con fade
-    /// </summary>
     public void StopMusic(float fadeTime = 1f)
     {
         if (musicCoroutine != null) StopCoroutine(musicCoroutine);
         musicCoroutine = StartCoroutine(FadeOutMusic(fadeTime));
     }
 
-    /// <summary>
-    /// Pausar/Reanudar música
-    /// </summary>
     public void SetMusicPaused(bool paused)
     {
         if (!IsAudioSourceValid(musicSource)) return;
-
-        if (paused)
-            musicSource.Pause();
-        else
-            musicSource.UnPause();
+        if (paused) musicSource.Pause();
+        else musicSource.UnPause();
     }
 
-    /// <summary>
-    /// Verificar si hay música reproduciéndose
-    /// </summary>
     public bool IsMusicPlaying()
     {
         return IsAudioSourceValid(musicSource) && musicSource.isPlaying;
     }
 
-    /// <summary>
-    /// Obtener el clip de música actual
-    /// </summary>
     public AudioClip GetCurrentMusicClip()
     {
         return IsAudioSourceValid(musicSource) ? musicSource.clip : null;
@@ -303,12 +345,10 @@ public class AudioManager : MonoBehaviour
     {
         if (!IsAudioSourceValid(musicSource)) yield break;
 
-        // Fade out si hay música reproduciéndose
         if (musicSource.isPlaying && musicSource.volume > 0)
         {
             float startVolume = musicSource.volume;
             float elapsed = 0f;
-
             while (elapsed < fadeTime)
             {
                 elapsed += Time.unscaledDeltaTime;
@@ -320,18 +360,14 @@ public class AudioManager : MonoBehaviour
 
         if (!IsAudioSourceValid(musicSource)) yield break;
 
-        // Cambiar clip
         musicSource.clip = newClip;
         musicSource.volume = 0f;
 
         if (newClip != null)
         {
             musicSource.Play();
-
-            // Fade in
             float targetVolume = MusicVolume * MasterVolume;
             float elapsed = 0f;
-
             while (elapsed < fadeTime)
             {
                 elapsed += Time.unscaledDeltaTime;
@@ -339,7 +375,6 @@ public class AudioManager : MonoBehaviour
                     musicSource.volume = Mathf.Lerp(0f, targetVolume, elapsed / fadeTime);
                 yield return null;
             }
-
             if (IsAudioSourceValid(musicSource))
                 musicSource.volume = targetVolume;
         }
@@ -353,7 +388,6 @@ public class AudioManager : MonoBehaviour
 
         float startVolume = musicSource.volume;
         float elapsed = 0f;
-
         while (elapsed < fadeTime)
         {
             elapsed += Time.unscaledDeltaTime;
@@ -390,12 +424,31 @@ public class AudioManager : MonoBehaviour
     #region BREATHING SYSTEM
     public void SetBreathingState(BreathingState state)
     {
-        if (currentBreathingState == state) return;
+        // ===== FIX: Solo ignorar si YA está reproduciendo ese estado =====
+        if (currentBreathingState == state && breathingStarted)
+        {
+            return;
+        }
+
         currentBreathingState = state;
 
         if (breathingCoroutine != null) StopCoroutine(breathingCoroutine);
 
-        AudioClip targetClip = state switch
+        AudioClip targetClip = GetBreathingClip(state);
+
+        if (targetClip == null)
+        {
+            Debug.LogWarning($"[AudioManager] No hay clip para respiración: {state}");
+            return;
+        }
+
+        breathingCoroutine = StartCoroutine(TransitionBreathing(targetClip, state));
+        Debug.Log($"[AudioManager] Respiración → {state}");
+    }
+
+    private AudioClip GetBreathingClip(BreathingState state)
+    {
+        return state switch
         {
             BreathingState.Normal => normalBreathing,
             BreathingState.Heavy => heavyBreathing,
@@ -404,12 +457,9 @@ public class AudioManager : MonoBehaviour
             BreathingState.Panic => panicBreathing,
             _ => normalBreathing
         };
-
-        breathingCoroutine = StartCoroutine(TransitionBreathing(targetClip));
-        Debug.Log($"[AudioManager] Respiración: {state}");
     }
 
-    private IEnumerator TransitionBreathing(AudioClip newClip)
+    private IEnumerator TransitionBreathing(AudioClip newClip, BreathingState state)
     {
         if (!IsAudioSourceValid(breathingSource))
         {
@@ -417,33 +467,61 @@ public class AudioManager : MonoBehaviour
             yield break;
         }
 
-        // Fade out
-        while (IsAudioSourceValid(breathingSource) && breathingSource.volume > 0)
+        float baseVolume = GetBreathingBaseVolume(state);
+        float targetVolume = baseVolume * SFXVolume * MasterVolume;
+
+        // Fade out si ya está sonando
+        if (breathingSource.isPlaying && breathingSource.volume > 0.01f)
         {
-            breathingSource.volume -= Time.deltaTime * breathingFadeSpeed;
-            yield return null;
+            float fadeOutTime = 0.3f;
+            float startVol = breathingSource.volume;
+            float elapsed = 0f;
+            while (elapsed < fadeOutTime)
+            {
+                elapsed += Time.deltaTime;
+                if (IsAudioSourceValid(breathingSource))
+                    breathingSource.volume = Mathf.Lerp(startVol, 0f, elapsed / fadeOutTime);
+                yield return null;
+            }
         }
 
         if (!IsAudioSourceValid(breathingSource)) yield break;
 
+        // Cambiar clip y reproducir
         breathingSource.clip = newClip;
+        breathingSource.loop = true;
+        breathingSource.volume = 0f;
+        breathingSource.Play();
 
-        if (newClip != null)
+        // ===== Marcar que ya empezó =====
+        breathingStarted = true;
+
+        // Fade in
+        float fadeInTime = 0.5f;
+        float elapsedIn = 0f;
+        while (elapsedIn < fadeInTime)
         {
-            breathingSource.loop = true;
-            breathingSource.Play();
-
-            float targetVolume = SFXVolume * MasterVolume * 0.7f;
-
-            while (IsAudioSourceValid(breathingSource) && breathingSource.volume < targetVolume)
-            {
-                breathingSource.volume += Time.deltaTime * breathingFadeSpeed;
-                yield return null;
-            }
-
+            elapsedIn += Time.deltaTime;
             if (IsAudioSourceValid(breathingSource))
-                breathingSource.volume = targetVolume;
+                breathingSource.volume = Mathf.Lerp(0f, targetVolume, elapsedIn / fadeInTime);
+            yield return null;
         }
+
+        if (IsAudioSourceValid(breathingSource))
+            breathingSource.volume = targetVolume;
+
+        Debug.Log($"[AudioManager] Breathing activo: {newClip.name} vol: {targetVolume:F2}");
+    }
+
+    /// <summary>
+    /// Forzar inicio de respiración (ignora el estado actual)
+    /// </summary>
+    public void ForceStartBreathing(BreathingState state)
+    {
+        // ===== FIX: Resetear ambos flags =====
+        currentBreathingState = BreathingState.None;
+        breathingStarted = false;
+        SetBreathingState(state);
     }
 
     public void StopBreathing()
@@ -457,40 +535,185 @@ public class AudioManager : MonoBehaviour
         if (IsAudioSourceValid(breathingSource))
         {
             breathingSource.Stop();
+            breathingSource.volume = 0f;
         }
 
-        currentBreathingState = BreathingState.Normal;
+        currentBreathingState = BreathingState.None;
+        breathingStarted = false;
     }
 
     public BreathingState GetCurrentBreathingState() => currentBreathingState;
     #endregion
 
     #region HEARTBEAT SYSTEM
+
+    /// <summary>
+    /// Registrar el enemigo y player para heartbeat automático.
+    /// </summary>
+    public void RegisterHeartbeatTargets(Transform player, Transform enemy)
+    {
+        playerTransform = player;
+        enemyTransform = enemy;
+        Debug.Log("[AudioManager] Heartbeat targets registrados");
+    }
+
+    public void RegisterEnemy(Transform enemy)
+    {
+        enemyTransform = enemy;
+
+        if (playerTransform == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+                playerTransform = playerObj.transform;
+        }
+
+        Debug.Log($"[AudioManager] Enemigo registrado. Player: {(playerTransform != null ? "OK" : "NO ENCONTRADO")}");
+    }
+
+    private void UpdateAutoHeartbeat()
+    {
+        if (playerTransform == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+                playerTransform = playerObj.transform;
+            else
+                return;
+        }
+
+        if (enemyTransform == null)
+        {
+            GameObject enemyObj = GameObject.FindGameObjectWithTag("Enemy");
+            if (enemyObj != null)
+                enemyTransform = enemyObj.transform;
+            else
+                return;
+        }
+
+        float distance = Vector3.Distance(playerTransform.position, enemyTransform.position);
+
+        if (distance <= heartbeatStartDistance)
+        {
+            float intensity = Mathf.InverseLerp(heartbeatStartDistance, heartbeatMaxDistance, distance);
+            intensity = Mathf.Clamp01(intensity);
+
+            // ===== Solo actualizar intensidad, no crear nuevas corrutinas =====
+            currentHeartbeatIntensity = Mathf.Lerp(currentHeartbeatIntensity, intensity, Time.deltaTime * 3f);
+
+            if (!heartbeatActive)
+            {
+                StartHeartbeat(intensity);
+            }
+        }
+        else
+        {
+            if (heartbeatActive)
+            {
+                StopHeartbeat();
+            }
+        }
+    }
+
     public void StartHeartbeat(float intensity = 1f)
     {
+        if (heartbeatSound == null)
+        {
+            Debug.LogWarning("[AudioManager] No hay clip de heartbeat asignado");
+            return;
+        }
+
+        if (!IsAudioSourceValid(heartbeatSource))
+        {
+            Debug.LogWarning("[AudioManager] HeartbeatSource no válido");
+            return;
+        }
+
+        // ===== FIX: Si ya está activo, solo actualizar intensidad =====
+        if (heartbeatActive)
+        {
+            currentHeartbeatIntensity = Mathf.Clamp01(intensity);
+            return;
+        }
+
+        intensity = Mathf.Clamp01(intensity);
+        currentHeartbeatIntensity = intensity;
+        heartbeatActive = true;
+
+        // ===== FIX: Asegurar que solo hay UNA corrutina =====
         if (heartbeatCoroutine != null) StopCoroutine(heartbeatCoroutine);
-        heartbeatCoroutine = StartCoroutine(HeartbeatLoop(intensity));
+        heartbeatCoroutine = StartCoroutine(HeartbeatLoop());
+        Debug.Log($"[AudioManager] Heartbeat iniciado - intensidad: {intensity:F2}");
     }
 
     public void StopHeartbeat()
     {
+        heartbeatActive = false;
+
         if (heartbeatCoroutine != null)
         {
             StopCoroutine(heartbeatCoroutine);
             heartbeatCoroutine = null;
         }
+
+        if (IsAudioSourceValid(heartbeatSource))
+        {
+            heartbeatSource.Stop();
+            heartbeatSource.volume = 0f;
+        }
+
+        currentHeartbeatIntensity = 0f;
+        Debug.Log("[AudioManager] Heartbeat detenido");
     }
 
-    private IEnumerator HeartbeatLoop(float intensity)
+    public void SetHeartbeatIntensity(float intensity)
     {
-        while (true)
+        intensity = Mathf.Clamp01(intensity);
+        currentHeartbeatIntensity = intensity;
+
+        if (intensity <= 0f)
         {
-            if (heartbeatSound != null)
-                PlaySFX(heartbeatSound, intensity);
-            float delay = Mathf.Lerp(1.2f, 0.4f, intensity);
-            yield return new WaitForSeconds(delay);
+            StopHeartbeat();
+            return;
+        }
+
+        if (!heartbeatActive)
+        {
+            StartHeartbeat(intensity);
+        }
+        // ===== Si ya está activo, la corrutina lee currentHeartbeatIntensity automáticamente =====
+    }
+
+    private IEnumerator HeartbeatLoop()
+    {
+        // ===== FIX: Esperar a que termine el sonido anterior antes de reproducir otro =====
+        while (heartbeatActive)
+        {
+            if (heartbeatSound != null && IsAudioSourceValid(heartbeatSource))
+            {
+                // ===== FIX: Volumen más bajo, escalado mejor =====
+                float volume = Mathf.Lerp(0.15f, 0.5f, currentHeartbeatIntensity) * SFXVolume * MasterVolume;
+
+                // ===== FIX: Usar Play() en vez de PlayOneShot() para evitar acumulación =====
+                heartbeatSource.clip = heartbeatSound;
+                heartbeatSource.volume = volume;
+                heartbeatSource.pitch = Mathf.Lerp(0.9f, 1.1f, currentHeartbeatIntensity);
+                heartbeatSource.Play();
+            }
+
+            // Esperar entre latidos
+            float delay = Mathf.Lerp(1.2f, 0.45f, currentHeartbeatIntensity);
+
+            // ===== FIX: Esperar el mayor entre el delay y la duración del clip =====
+            float clipLength = heartbeatSound != null ? heartbeatSound.length : 0.5f;
+            float waitTime = Mathf.Max(delay, clipLength + 0.05f);
+
+            yield return new WaitForSeconds(waitTime);
         }
     }
+
+    public float GetHeartbeatIntensity() => currentHeartbeatIntensity;
+    public bool IsHeartbeatActive() => heartbeatActive;
     #endregion
 
     #region AMBIENT SYSTEM
@@ -509,23 +732,33 @@ public class AudioManager : MonoBehaviour
     public void StopAmbient()
     {
         if (IsAudioSourceValid(ambientSource))
-        {
             ambientSource.Stop();
-        }
     }
 
     public void SetAmbientVolume(float volume)
     {
         if (IsAudioSourceValid(ambientSource))
-        {
             ambientSource.volume = volume * SFXVolume * MasterVolume;
-        }
+    }
+    #endregion
+
+    #region DEBUG
+    /// <summary>
+    /// Información de estado para debugging
+    /// </summary>
+    public string GetDebugInfo()
+    {
+        return $"Breathing: {currentBreathingState} (started: {breathingStarted})\n" +
+               $"Heartbeat: {(heartbeatActive ? $"ON ({currentHeartbeatIntensity:F2})" : "OFF")}\n" +
+               $"Music: {(IsMusicPlaying() ? musicSource.clip?.name : "None")}\n" +
+               $"Enemy dist: {(enemyTransform != null && playerTransform != null ? Vector3.Distance(playerTransform.position, enemyTransform.position).ToString("F1") : "N/A")}";
     }
     #endregion
 }
 
 public enum BreathingState
 {
+    None = -1,  // ← NUEVO: estado "no iniciado"
     Normal,
     Heavy,
     Exhausted,

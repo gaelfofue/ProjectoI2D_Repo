@@ -11,7 +11,8 @@ public class SimpleEnemy : MonoBehaviour
     [Header("References")]
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private SpriteRenderer rend;
-    [SerializeField] private Collider2D attackTrigger; // Trigger separado para ataque
+    [SerializeField] private Collider2D attackTrigger;
+    [SerializeField] private Animator anim;
 
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 3f;
@@ -26,7 +27,7 @@ public class SimpleEnemy : MonoBehaviour
 
     [Header("Attack Settings")]
     [SerializeField] private float attackCooldown = 1f;
-    [SerializeField] private bool useCollisionAttack = true; // Usar colisión para atacar
+    [SerializeField] private bool useCollisionAttack = true;
 
     [Header("Patrol Settings")]
     [SerializeField] private bool enablePatrol = true;
@@ -75,6 +76,7 @@ public class SimpleEnemy : MonoBehaviour
     {
         if (rb == null) rb = GetComponent<Rigidbody2D>();
         if (rend == null) rend = GetComponent<SpriteRenderer>();
+        if (anim == null) anim = GetComponent<Animator>();
     }
 
     private void Start()
@@ -92,6 +94,7 @@ public class SimpleEnemy : MonoBehaviour
             if (player == null)
             {
                 if (enablePatrol) PatrolBehavior();
+                UpdateAnimations();
                 return;
             }
         }
@@ -101,6 +104,7 @@ public class SimpleEnemy : MonoBehaviour
         {
             rb.linearVelocity = Vector2.zero;
             ChangeState(EnemyState.Patrol);
+            UpdateAnimations();
             return;
         }
 
@@ -123,19 +127,18 @@ public class SimpleEnemy : MonoBehaviour
 
         UpdateVisuals();
         UpdateSpriteFlip();
+        UpdateAnimations();
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (!useCollisionAttack) return;
-
         TryAttackOnCollision(collision.gameObject);
     }
 
     private void OnCollisionStay2D(Collision2D collision)
     {
         if (!useCollisionAttack) return;
-
         TryAttackOnCollision(collision.gameObject);
     }
 
@@ -151,9 +154,6 @@ public class SimpleEnemy : MonoBehaviour
     #endregion
 
     #region ATTACK SYSTEM
-    /// <summary>
-    /// Intenta atacar cuando hay colisión física
-    /// </summary>
     private void TryAttackOnCollision(GameObject other)
     {
         if (!other.CompareTag("Player")) return;
@@ -165,9 +165,6 @@ public class SimpleEnemy : MonoBehaviour
         AttackPlayer();
     }
 
-    /// <summary>
-    /// Intenta atacar cuando hay trigger
-    /// </summary>
     private void TryAttackOnTrigger(GameObject other)
     {
         if (!other.CompareTag("Player")) return;
@@ -183,17 +180,11 @@ public class SimpleEnemy : MonoBehaviour
         AttackPlayer();
     }
 
-    /// <summary>
-    /// Verifica si el enemigo puede atacar (cooldown)
-    /// </summary>
     private bool CanAttack()
     {
         return Time.time - lastAttackTime >= attackCooldown;
     }
 
-    /// <summary>
-    /// Ejecuta el ataque al jugador
-    /// </summary>
     private void AttackPlayer()
     {
         if (playerController == null) return;
@@ -209,16 +200,10 @@ public class SimpleEnemy : MonoBehaviour
 
         Debug.Log("[SimpleEnemy] ¡¡¡ATACANDO AL JUGADOR!!!");
 
-        // Detener movimiento al atacar
         rb.linearVelocity = Vector2.zero;
-
-        // Llamar al método de daño del jugador
         playerController.TakeDamage();
     }
 
-    /// <summary>
-    /// Verifica el ataque por distancia (backup)
-    /// </summary>
     private void CheckDistanceAttack()
     {
         if (playerController == null) return;
@@ -240,7 +225,6 @@ public class SimpleEnemy : MonoBehaviour
     {
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
 
-        // ¿Puede ver al jugador?
         if (distanceToPlayer <= visionRange && playerController.CanBeSeenByEnemy())
         {
             lastKnownPlayerPos = player.position;
@@ -248,7 +232,6 @@ public class SimpleEnemy : MonoBehaviour
             return;
         }
 
-        // ¿Hay un escondite cerca que revisar?
         if (Time.time - lastSearchTime >= searchCooldown)
         {
             if (distanceToPlayer <= searchRange && playerController.IsInSafeZone)
@@ -257,7 +240,6 @@ public class SimpleEnemy : MonoBehaviour
                 return;
             }
 
-            // Búsqueda aleatoria
             if (Random.value < randomSearchChance * Time.deltaTime)
             {
                 TrySearchRandomSpot();
@@ -271,21 +253,17 @@ public class SimpleEnemy : MonoBehaviour
     {
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
 
-        // ¿Puede seguir viendo al jugador?
         if (playerController.CanBeSeenByEnemy())
         {
             lastKnownPlayerPos = player.position;
 
-            // Moverse hacia el jugador
             Vector2 direction = ((Vector2)player.position - (Vector2)transform.position).normalized;
             rb.linearVelocity = direction * chaseSpeed;
 
-            // Verificar ataque por distancia (backup del sistema de colisión)
             CheckDistanceAttack();
         }
         else
         {
-            // Perdió de vista al jugador, buscar
             ChangeState(EnemyState.Search);
         }
     }
@@ -294,7 +272,6 @@ public class SimpleEnemy : MonoBehaviour
     {
         searchTimer -= Time.deltaTime;
 
-        // Moverse hacia la última posición conocida
         Vector2 direction = (lastKnownPlayerPos - (Vector2)transform.position).normalized;
         float distance = Vector2.Distance(transform.position, lastKnownPlayerPos);
 
@@ -306,10 +283,8 @@ public class SimpleEnemy : MonoBehaviour
         {
             rb.linearVelocity = Vector2.zero;
 
-            // Mirar alrededor
             if (searchTimer <= 0)
             {
-                // ¿El jugador está cerca y visible?
                 float distanceToPlayer = Vector2.Distance(transform.position, player.position);
 
                 if (distanceToPlayer <= visionRange && playerController.CanBeSeenByEnemy())
@@ -318,13 +293,11 @@ public class SimpleEnemy : MonoBehaviour
                     return;
                 }
 
-                // Revisar escondites cercanos
                 if (distanceToPlayer <= searchRange && playerController.IsHidden)
                 {
                     SearchForPlayer();
                 }
 
-                // Volver a patrullar
                 ChangeState(EnemyState.Patrol);
             }
         }
@@ -334,10 +307,8 @@ public class SimpleEnemy : MonoBehaviour
     {
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
 
-        // Detenerse para investigar
         rb.linearVelocity = Vector2.zero;
 
-        // Revisar el escondite
         if (Time.time - lastSearchTime >= 0.5f)
         {
             bool found = SearchForPlayer();
@@ -345,7 +316,6 @@ public class SimpleEnemy : MonoBehaviour
 
             if (!found)
             {
-                // No encontró nada, volver a patrullar
                 ChangeState(EnemyState.Patrol);
             }
         }
@@ -536,9 +506,6 @@ public class SimpleEnemy : MonoBehaviour
         rend.color = Color.Lerp(rend.color, targetColor, Time.deltaTime * 5f);
     }
 
-    /// <summary>
-    /// Voltea el sprite según la dirección del movimiento
-    /// </summary>
     private void UpdateSpriteFlip()
     {
         if (rb.linearVelocity.x > 0.1f)
@@ -550,28 +517,31 @@ public class SimpleEnemy : MonoBehaviour
             rend.flipX = true;
         }
     }
+
+    private void UpdateAnimations()
+    {
+        if (anim == null) return;
+
+        bool isMoving = rb.linearVelocity.magnitude > 0.1f;
+        anim.SetBool("isWalking", isMoving);
+    }
     #endregion
 
     #region GIZMOS
     private void OnDrawGizmosSelected()
     {
-        // Rango de visión
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, visionRange);
 
-        // Rango de ataque
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackRange);
 
-        // Rango de búsqueda
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(transform.position, searchRange);
 
-        // Rango de audición
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position, hearingRange);
 
-        // Puntos de patrulla
         if (patrolPoints != null)
         {
             Gizmos.color = Color.blue;
@@ -584,7 +554,6 @@ public class SimpleEnemy : MonoBehaviour
             }
         }
 
-        // Escondites a revisar
         if (hidingSpotsToCheck != null)
         {
             Gizmos.color = Color.magenta;

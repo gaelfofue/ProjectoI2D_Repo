@@ -258,31 +258,4 @@ public class BathroomSafeRoom : MonoBehaviour
         SceneManager.LoadScene(nextSceneName);
     }
     #endregion
-
-    #region DEBUG
-    private void OnGUI()
-    {
-        if (!showDebug) return;
-
-        GUILayout.BeginArea(new Rect(10, 10, 280, 150));
-        GUILayout.BeginVertical("box");
-        GUILayout.Label("<b>=== BAÑO (SAFE ROOM) ===</b>");
-        GUILayout.Label($"Estado: <color=yellow>{debugStatus}</color>");
-        GUILayout.Label($"Alivio completo: {(reliefComplete ? "<color=green>✅</color>" : "⏳")}");
-        GUILayout.Label($"Puede salir: {(canExit ? "<color=green>✅ Presiona E</color>" : "❌")}");
-        GUILayout.Label($"Next: {nextSceneName}");
-        GUILayout.EndVertical();
-        GUILayout.EndArea();
-    }
-
-    private void OnDrawGizmos()
-    {
-        // Dibujar zona de salida
-        if (exitDoorPosition != null)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(exitDoorPosition.position, exitTriggerDistance);
-        }
-    }
-    #endregion
 }

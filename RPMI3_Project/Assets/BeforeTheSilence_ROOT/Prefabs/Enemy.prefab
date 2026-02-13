@@ -122,7 +122,7 @@ Rigidbody2D:
   m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 1
-  m_Constraints: 4
+  m_Constraints: 6
 --- !u!70 &5390530391665963202
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -175,6 +175,7 @@ MonoBehaviour:
   rb: {fileID: 6000255502480040162}
   rend: {fileID: 6949640570041843257}
   attackTrigger: {fileID: 0}
+  anim: {fileID: 0}
   moveSpeed: 3
   chaseSpeed: 4.5
   searchSpeed: 1.5
@@ -209,7 +210,7 @@ Animator:
   m_GameObject: {fileID: 5299590656440286252}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 18ab84a067d1a684ea8f2199c166cf9d, type: 2}
+  m_Controller: {fileID: 9100000, guid: 595a184ad23ad5f47997b557731f7cca, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

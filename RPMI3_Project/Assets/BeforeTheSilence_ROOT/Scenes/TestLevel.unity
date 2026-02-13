@@ -1996,6 +1996,75 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 595143017}
   m_CullTransparentMesh: 1
+--- !u!1 &616901137
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 616901139}
+  - component: {fileID: 616901138}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &616901138
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 616901137}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a4aaee201d6392468c23a996584e31c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AudioManager
+  menuMusic: {fileID: 8300000, guid: e88a72d3df1bd05418233919e854b890, type: 3}
+  gameplayMusic: {fileID: 0}
+  tensionMusic: {fileID: 0}
+  gameOverMusic: {fileID: 0}
+  normalBreathing: {fileID: 8300000, guid: b2f6314195557a540ad0a60cba28ad61, type: 3}
+  heavyBreathing: {fileID: 8300000, guid: 35f15ce6f00024747ad5c2eaecd0196c, type: 3}
+  exhaustedBreathing: {fileID: 8300000, guid: fad2a1eda32529348bc046cbe8d014dd, type: 3}
+  scaredBreathing: {fileID: 8300000, guid: d88edd9674c5dd34aa59c680dbc0f5d8, type: 3}
+  panicBreathing: {fileID: 8300000, guid: fc9a5332b0d31fa47b4df4a509bc4ab6, type: 3}
+  hideSound: {fileID: 0}
+  unhideSound: {fileID: 0}
+  footstepSound: {fileID: 0}
+  heartbeatSound: {fileID: 8300000, guid: edf73d759d8ac704f80b8064128b0719, type: 3}
+  discoveredSound: {fileID: 8300000, guid: 927056380610e0146b465087fd0e96b3, type: 3}
+  deathSound: {fileID: 0}
+  musicFadeSpeed: 1
+  breathingFadeSpeed: 2
+  heartbeatStartDistance: 20
+  heartbeatMaxDistance: 5
+  autoHeartbeat: 1
+  autoStartBreathing: 1
+  gameplaySceneNames:
+  - Gameplay
+  - Game
+  - Level
+--- !u!4 &616901139
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 616901137}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -4666,54 +4735,45 @@ MonoBehaviour:
   baseVignetteIntensity: 0.3
   baseVignetteSmoothness: 0.4
   baseVignetteColor: {r: 0, g: 0, b: 0, a: 1}
+  staminaDepleteIntensity: 0.65
+  maxFearIntensity: 0.75
   hiddenVignetteIntensity: 0.5
-  exhaustedVignetteIntensity: 0.55
-  scaredVignetteIntensity: 0.6
-  panicVignetteIntensity: 0.7
   hiddenVignetteColor: {r: 0.05, g: 0.02, b: 0.1, a: 1}
-  exhaustedVignetteColor: {r: 0.2, g: 0.05, b: 0.05, a: 1}
-  fearVignetteColor: {r: 0.1, g: 0.02, b: 0.15, a: 1}
-  panicVignetteColor: {r: 0.3, g: 0.02, b: 0.08, a: 1}
+  lowStaminaColor: {r: 0.2, g: 0.05, b: 0.05, a: 1}
+  fearColor: {r: 0.1, g: 0.02, b: 0.15, a: 1}
+  panicColor: {r: 0.3, g: 0.02, b: 0.08, a: 1}
   baseSaturation: -10
   baseContrast: 5
   baseExposure: 0
-  fearSaturation: -35
-  panicSaturation: -50
-  fearContrast: 15
-  panicContrast: 25
-  fearExposure: -0.2
-  panicExposure: -0.4
-  exhaustedSaturation: -25
-  exhaustedContrast: 10
+  maxFearSaturation: -50
+  maxFearContrast: 25
+  maxFearExposure: -0.4
+  lowStaminaSaturation: -25
+  lowStaminaContrast: 10
   enableChromaticAberration: 1
   baseChromaticIntensity: 0
-  scaredChromaticIntensity: 0.15
-  panicChromaticIntensity: 0.5
+  maxFearChromaticIntensity: 0.5
   damageChromaticIntensity: 0.8
   enableLensDistortion: 1
   baseLensDistortion: 0
-  panicLensDistortion: -0.3
+  maxFearLensDistortion: -0.3
   hiddenLensDistortion: -0.1
   enableFilmGrain: 1
   baseGrainIntensity: 0.15
-  fearGrainIntensity: 0.35
-  panicGrainIntensity: 0.5
+  maxFearGrainIntensity: 0.5
+  lowStaminaGrainIntensity: 0.35
   enableBloom: 1
   baseBloomIntensity: 0.5
   fearBloomIntensity: 0.3
   panicBloomIntensity: 0.8
   enablePulse: 1
   normalPulseSpeed: 1
-  nervousPulseSpeed: 1.5
-  scaredPulseSpeed: 2.5
-  panicPulseSpeed: 5
+  maxPulseSpeed: 5
   basePulseIntensity: 0.02
-  fearPulseIntensity: 0.05
-  panicPulseIntensity: 0.12
+  maxPulseIntensity: 0.12
   normalTransitionSpeed: 3
   fastTransitionSpeed: 8
   flashTransitionSpeed: 20
-  showDebugInfo: 0
 --- !u!1 &1387508327
 GameObject:
   m_ObjectHideFlags: 0
@@ -7171,3 +7231,4 @@ SceneRoots:
   - {fileID: 1014138300}
   - {fileID: 1432602258}
   - {fileID: 436125788}
+  - {fileID: 616901139}

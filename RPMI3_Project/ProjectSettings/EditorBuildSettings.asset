@@ -6,22 +6,22 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/BeforeTheSilence_ROOT/Scenes/SCN_MainMenu.unity
+    path: Assets/BeforeTheSilence_ROOT/Scenes/Acabadas/SCN_MainMenu.unity
     guid: 3bfc68906b999994aa9c74c2c0faf79b
   - enabled: 1
-    path: Assets/BeforeTheSilence_ROOT/Scenes/SCN_Lobby.unity
+    path: Assets/BeforeTheSilence_ROOT/Scenes/Acabadas/SCN_Lobby.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
   - enabled: 1
-    path: Assets/BeforeTheSilence_ROOT/Scenes/SCN_DarkCorridor.unity
+    path: Assets/BeforeTheSilence_ROOT/Scenes/Acabadas/SCN_DarkCorridor.unity
     guid: 3baf25072657a11438bfcffbded31a86
   - enabled: 1
-    path: Assets/BeforeTheSilence_ROOT/Scenes/SCN_PisoArribaSinCambio.unity
+    path: Assets/BeforeTheSilence_ROOT/Scenes/Acabadas/SCN_PisoArribaSinCambio.unity
     guid: 0b4a503290ca035459c2986d1b6864c9
   - enabled: 1
-    path: "Assets/BeforeTheSilence_ROOT/Scenes/SCN_Ba\xF1o.unity"
+    path: "Assets/BeforeTheSilence_ROOT/Scenes/Acabadas/SCN_Ba\xF1o.unity"
     guid: c4fb9e7bd4f15b64ea8b4dd9a8e7a553
   - enabled: 1
-    path: Assets/BeforeTheSilence_ROOT/Scenes/SCN_PisoArribaConCambios.unity
+    path: Assets/BeforeTheSilence_ROOT/Scenes/Acabadas/SCN_PisoArribaConCambios.unity
     guid: 7f1f97d8bb97c4d4a9c13b136c6c59cf
   - enabled: 1
     path: Assets/BeforeTheSilence_ROOT/Scenes/SCN_PisoBajoConCambios1.unity
